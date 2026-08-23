@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Download, FileText, Loader2, Trash2 } from "lucide-react";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/lib/actions/documents";
 import { FormError, SubmitButton } from "@/components/form-parts";
 import { EmptyState } from "@/components/page-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -69,12 +70,12 @@ export function DocumentsPanel({
 }) {
   const [state, formAction] = useActionState<ActionState, FormData>(uploadDocumentAction, {});
   const [fileName, setFileName] = useState("");
-  const formRef = useRef<HTMLFormElement>(null);
 
-  if (state.message) {
-    toast.success(state.message);
-    formRef.current?.reset();
-  }
+  useActionFeedback(state);
+
+  // Klucz zależny od komunikatu wymusza przemontowanie formularza po udanym
+  // zapisie, co czyści pola bez sięgania po referencję w trakcie renderu.
+  const formKey = state.message ?? "nowy";
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -127,7 +128,7 @@ export function DocumentsPanel({
 
       <Card className="h-fit">
         <CardContent className="pt-6">
-          <form ref={formRef} action={formAction} className="space-y-4">
+          <form key={formKey} action={formAction} className="space-y-4">
             <input type="hidden" name="caseId" value={caseId} />
             <FormError>{state.error}</FormError>
 

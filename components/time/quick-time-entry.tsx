@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createTimeEntryAction, type ActionState } from "@/lib/actions/time";
 import { CaseCombobox } from "@/components/case-combobox";
 import { FormError, SubmitButton } from "@/components/form-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -53,20 +54,23 @@ export function QuickTimeEntry({
   const [billingType, setBillingType] = useState<BillingModel>("godzinowy");
   const [state, formAction] = useActionState<ActionState, FormData>(createTimeEntryAction, {});
 
-  // Model rozliczenia podpowiadamy z warunków sprawy, ale zostawiamy do zmiany:
-  // czynność pro bono zdarza się także w sprawie rozliczanej godzinowo.
-  useEffect(() => {
+  // Model rozliczenia podpowiadamy z warunków wybranej sprawy, ale zostawiamy
+  // do zmiany: czynność pro bono zdarza się także w sprawie rozliczanej
+  // godzinowo. To udokumentowany wzorzec Reacta — dostosowanie stanu podczas
+  // renderu przy zmianie danych wejściowych, bez sięgania po efekt.
+  const [previousCaseId, setPreviousCaseId] = useState(caseId);
+  if (caseId !== previousCaseId) {
+    setPreviousCaseId(caseId);
     const selected = cases.find((item) => item.id === caseId);
     if (selected) setBillingType(selected.billingModel);
-  }, [caseId, cases]);
+  }
 
-  useEffect(() => {
-    if (state.message) {
-      toast.success(state.message);
+  useActionFeedback(state, {
+    onSuccess: () => {
       setOpen(false);
       setCaseId(defaultCaseId ?? "");
-    }
-  }, [state, defaultCaseId]);
+    },
+  });
 
   // Rejestracja czasu to czynność wykonywana kilkanaście razy dziennie —
   // musi być osiągalna jednym klawiszem z dowolnego ekranu.

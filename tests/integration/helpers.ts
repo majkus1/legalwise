@@ -63,6 +63,10 @@ export async function querySql<T = Record<string, unknown>>(
 export async function resetDatabase(): Promise<void> {
   await runSql(`
     truncate table
+      public.notification_dispatch_events,
+      public.notification_preferences,
+      public.push_subscriptions,
+      public.user_notifications,
       public.audit_log,
       public.invoice_items,
       public.invoices,

@@ -16,6 +16,7 @@ import {
   Receipt,
   Settings,
   Users,
+  Bell,
 } from "lucide-react";
 import { BrandMark, BrandWordmark } from "@/components/brand";
 import { SubmitButton } from "@/components/form-parts";
@@ -181,6 +182,8 @@ export interface AppShellProps {
   logoutAction: () => Promise<void>;
   children: React.ReactNode;
   quickAction?: React.ReactNode;
+  /** Liczba nieprzeczytanych powiadomień — 0 ukrywa znacznik. */
+  unreadCount?: number;
 }
 
 export function AppShell({
@@ -191,6 +194,7 @@ export function AppShell({
   logoutAction,
   children,
   quickAction,
+  unreadCount = 0,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -241,9 +245,28 @@ export function AppShell({
             <BrandWordmark className="text-foreground" />
           </div>
 
-          {/* Rejestracja czasu jest czynnością wykonywaną kilkanaście razy
-              dziennie — musi być osiągalna z każdego ekranu. */}
-          <div className="ml-auto">{quickAction}</div>
+          <div className="ml-auto flex items-center gap-2">
+            <Link
+              href="/powiadomienia"
+              aria-label={
+                unreadCount > 0
+                  ? `Powiadomienia: ${unreadCount} nieprzeczytanych`
+                  : "Powiadomienia"
+              }
+              className="relative inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Bell className="size-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-[var(--brand-gold)] px-1 text-[10px] font-bold text-[var(--brand-navy)]">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Rejestracja czasu jest czynnością wykonywaną kilkanaście razy
+                dziennie — musi być osiągalna z każdego ekranu. */}
+            {quickAction}
+          </div>
         </header>
 
         <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</main>

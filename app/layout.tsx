@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Source_Serif_4 } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { PwaProvider } from "@/components/pwa";
 import "./globals.css";
 
 // latin-ext jest wymagany dla polskich znaków diakrytycznych (ą ć ę ł ń ó ś ź ż).
@@ -31,10 +32,26 @@ export const metadata: Metadata = {
   description:
     "System zarządzania kancelarią: ewidencja czasu pracy, sprawy, zadania, kalendarz i rozliczenia.",
   robots: { index: false, follow: false },
+  manifest: "/manifest.webmanifest",
+  applicationName: "Legal-Wise",
+  appleWebApp: {
+    capable: true,
+    title: "Legal-Wise",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: "#191E39",
+  // Aplikacja w trybie samodzielnym musi sięgać pod wcięcia ekranu (notch).
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -46,6 +63,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster position="top-right" richColors />
+        <PwaProvider />
       </body>
     </html>
   );

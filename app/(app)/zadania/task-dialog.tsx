@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createTaskAction, type ActionState } from "@/lib/actions/tasks";
 import { CaseCombobox } from "@/components/case-combobox";
 import { FormError, SubmitButton } from "@/components/form-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -51,13 +52,12 @@ export function TaskDialog({
   const [priority, setPriority] = useState<TaskPriority>("normalny");
   const [state, formAction] = useActionState<ActionState, FormData>(createTaskAction, {});
 
-  useEffect(() => {
-    if (state.message) {
-      toast.success(state.message);
+  useActionFeedback(state, {
+    onSuccess: () => {
       setOpen(false);
       setCaseId("");
-    }
-  }, [state]);
+    },
+  });
 
   const isDeficiency = taskKind === "brak_formalny";
 

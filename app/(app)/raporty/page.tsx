@@ -257,7 +257,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
               </div>
 
               <p className="mt-3 text-xs text-muted-foreground">
-                „Zafakturowane" oznacza czas powiązany z fakturą — dopiero to odróżnia pracę
+                {"„Zafakturowane”"} oznacza czas powiązany z fakturą — dopiero to odróżnia pracę
                 wykonaną od pracy rozliczonej. Wartość netto obejmuje wyłącznie rozliczenia
                 godzinowe; kwoty ryczałtowe są na fakturach, nie przy pojedynczych wpisach.
               </p>

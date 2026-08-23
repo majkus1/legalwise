@@ -10,6 +10,7 @@ import {
 } from "@/lib/actions/time";
 import { CaseCombobox } from "@/components/case-combobox";
 import { FormError, SubmitButton } from "@/components/form-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -66,12 +67,11 @@ export function EntryActions({
   const [billingType, setBillingType] = useState<BillingModel>(entry.billingType);
   const [state, formAction] = useActionState<ActionState, FormData>(updateTimeEntryAction, {});
 
-  useEffect(() => {
-    if (state.message) {
-      toast.success(state.message);
+  useActionFeedback(state, {
+    onSuccess: () => {
       setOpen(false);
-    }
-  }, [state]);
+    },
+  });
 
   // Wpis powiązany z zatwierdzoną fakturą jest zamknięty. Baza i tak odmówi
   // zmiany, ale interfejs ma to pokazać, a nie pozwolić się o to potknąć.

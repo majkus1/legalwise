@@ -50,11 +50,11 @@ export function PeriodWizard({
   // Podgląd liczy dokładnie ten sam kod, co utworzenie faktury — to, co
   // użytkownik zobaczy przed zatwierdzeniem, jest tym, co powstanie.
   useEffect(() => {
-    if (!clientId) {
-      setPreview(null);
-      return;
-    }
     startTransition(async () => {
+      if (!clientId) {
+        setPreview(null);
+        return;
+      }
       setPreview(await previewPeriodAction(clientId, periodFrom, periodTo));
     });
   }, [clientId, periodFrom, periodTo]);

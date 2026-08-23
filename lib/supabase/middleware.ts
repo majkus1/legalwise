@@ -9,6 +9,13 @@ const PUBLIC_PATHS = [
   "/przypomnienie-hasla",
   "/auth/reset",
   "/auth/callback",
+  // Strona zastępcza przy braku sieci — musi działać bez sprawdzania sesji,
+  // bo w trybie offline i tak nie da się jej zweryfikować.
+  "/offline",
+  // Cron nie ma sesji użytkownika — uwierzytelnia się nagłówkiem
+  // Authorization z sekretem i jest fail-closed. Przepuszczenie go przez
+  // warstwę sesji kończyłoby się przekierowaniem na ekran logowania.
+  "/api/cron",
 ];
 
 function isPublicPath(pathname: string): boolean {
@@ -56,6 +63,13 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!user && !isPublicPath(pathname)) {
+    // Trasy API odpowiadają kodem, a nie przekierowaniem — klient oczekuje
+    // JSON-a, a przekierowanie na stronę logowania zwróciłoby mu HTML
+    // ze statusem 200 i wyglądałoby jak sukces.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Brak autoryzacji" }, { status: 401 });
+    }
+
     const url = request.nextUrl.clone();
     url.pathname = "/logowanie";
     // Po zalogowaniu wracamy tam, gdzie użytkownik chciał wejść.

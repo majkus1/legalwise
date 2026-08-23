@@ -802,6 +802,106 @@ export type Database = {
           },
         ]
       }
+      notification_dispatch_events: {
+        Row: {
+          channel: string
+          created_at: string
+          dedupe_key: string
+          error: string | null
+          id: number
+          organization_id: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          dedupe_key: string
+          error?: string | null
+          id?: number
+          organization_id?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          dedupe_key?: string
+          error?: string | null
+          id?: number
+          organization_id?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_dispatch_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          digest_enabled: boolean
+          email_enabled: boolean
+          include_billing: boolean
+          include_deadlines: boolean
+          include_deficiencies: boolean
+          include_tasks: boolean
+          notify_case_assigned: boolean
+          notify_deadlines: boolean
+          notify_task_assigned: boolean
+          organization_id: string
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          digest_enabled?: boolean
+          email_enabled?: boolean
+          include_billing?: boolean
+          include_deadlines?: boolean
+          include_deficiencies?: boolean
+          include_tasks?: boolean
+          notify_case_assigned?: boolean
+          notify_deadlines?: boolean
+          notify_task_assigned?: boolean
+          organization_id: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          digest_enabled?: boolean
+          email_enabled?: boolean
+          include_billing?: boolean
+          include_deadlines?: boolean
+          include_deficiencies?: boolean
+          include_tasks?: boolean
+          notify_case_assigned?: boolean
+          notify_deadlines?: boolean
+          notify_task_assigned?: boolean
+          organization_id?: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           active: boolean
@@ -896,6 +996,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_used_at: string | null
+          organization_id: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_used_at?: string | null
+          organization_id: string
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_used_at?: string | null
+          organization_id?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
@@ -1060,6 +1204,53 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          event_key: string | null
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          organization_id: string
+          read_at: string | null
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          event_key?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          organization_id: string
+          read_at?: string | null
+          title: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          event_key?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          organization_id?: string
+          read_at?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1197,6 +1388,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
       my_org_ids: { Args: never; Returns: string[] }
       my_role_in: {
         Args: { p_org: string }
@@ -1239,6 +1431,10 @@ export type Database = {
         }
         Returns: string
       }
+      set_own_push_enabled: {
+        Args: { p_enabled: boolean; p_org: string }
+        Returns: undefined
+      }
       shares_org_with: { Args: { p_user: string }; Returns: boolean }
       storage_case_id: { Args: { p_name: string }; Returns: string }
     }
@@ -1263,6 +1459,15 @@ export type Database = {
       event_source: "manual" | "pi_import"
       invoice_status: "draft" | "approved" | "sent" | "paid" | "anulowana"
       ksef_status: "not_sent" | "pending" | "accepted" | "error"
+      notification_kind:
+        | "brak_formalny_termin"
+        | "termin_procesowy"
+        | "zadanie_przypisane"
+        | "zadanie_po_terminie"
+        | "sprawa_przypisanie"
+        | "zamkniecie_okresu"
+        | "faktura_status"
+        | "poranny_przeglad"
       org_role: "owner" | "partner" | "lawyer" | "staff"
       party_role:
         | "powod"
@@ -1426,6 +1631,16 @@ export const Constants = {
       event_source: ["manual", "pi_import"],
       invoice_status: ["draft", "approved", "sent", "paid", "anulowana"],
       ksef_status: ["not_sent", "pending", "accepted", "error"],
+      notification_kind: [
+        "brak_formalny_termin",
+        "termin_procesowy",
+        "zadanie_przypisane",
+        "zadanie_po_terminie",
+        "sprawa_przypisanie",
+        "zamkniecie_okresu",
+        "faktura_status",
+        "poranny_przeglad",
+      ],
       org_role: ["owner", "partner", "lawyer", "staff"],
       party_role: [
         "powod",

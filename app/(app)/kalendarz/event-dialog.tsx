@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createCalendarEventAction, type ActionState } from "@/lib/actions/tasks";
 import { CaseCombobox } from "@/components/case-combobox";
 import { FormError, SubmitButton } from "@/components/form-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -37,13 +38,12 @@ export function EventDialog({ cases, today }: { cases: CaseOption[]; today: stri
     {},
   );
 
-  useEffect(() => {
-    if (state.message) {
-      toast.success(state.message);
+  useActionFeedback(state, {
+    onSuccess: () => {
       setOpen(false);
       setCaseId("");
-    }
-  }, [state]);
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

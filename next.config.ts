@@ -32,6 +32,11 @@ const csp = [
   `base-uri 'self'`,
   `form-action 'self'`,
   `object-src 'none'`,
+  // Bez worker-src przeglądarka zablokuje rejestrację service workera,
+  // a bez manifest-src nie wczyta manifestu — aplikacja przestanie być
+  // instalowalna, i to bez czytelnego komunikatu.
+  `worker-src 'self'`,
+  `manifest-src 'self'`,
 ]
   .filter(Boolean)
   .join("; ");
