@@ -9,7 +9,7 @@ import { formatGrosz } from "@/lib/money";
 import { formatDate, formatMinutesAsHours, monthRange, todayInWarsaw } from "@/lib/time";
 import type { BillingModel } from "@/lib/domain";
 import { EmptyState, PageHeader, StatTile } from "@/components/page-parts";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -86,15 +86,9 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
         description={`Godziny przepracowane wobec zafakturowanych · ${periodLabel}`}
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button
-              render={
-                <Link href={wholeYear ? `/raporty?miesiac=${anchor}` : `/raporty?miesiac=${anchor}&zakres=rok`} />
-              }
-              variant="outline"
-              size="sm"
-            >
+            <ButtonLink href={wholeYear ? `/raporty?miesiac=${anchor}` : `/raporty?miesiac=${anchor}&zakres=rok`} variant="outline" size="sm">
               {wholeYear ? "Bieżący miesiąc" : "Cały rok"}
-            </Button>
+            </ButtonLink>
           </div>
         }
       />

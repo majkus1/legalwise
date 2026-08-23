@@ -13,7 +13,7 @@ import {
 } from "@/lib/domain";
 import { EmptyState, PageHeader, StatTile } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import {
   Table,
   TableBody,
@@ -56,10 +56,10 @@ export default async function InvoicesPage() {
         title="Faktury"
         description={`${rows.length} ${rows.length === 1 ? "dokument" : "dokumentów"}`}
         actions={
-          <Button render={<Link href="/rozliczenia" />} className="gap-2">
+          <ButtonLink href="/rozliczenia" className="gap-2">
             <Plus className="size-4" aria-hidden="true" />
             Zamknij okres
-          </Button>
+          </ButtonLink>
         }
       />
 

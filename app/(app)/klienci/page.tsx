@@ -9,6 +9,7 @@ import { BILLING_MODEL_LABELS, CLIENT_TYPE_LABELS, type BillingModel, type Clien
 import { EmptyState, PageHeader } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -47,10 +48,10 @@ export default async function ClientsPage({ searchParams }: PageProps<"/klienci"
         title="Klienci"
         description={`${rows.length} ${rows.length === 1 ? "klient" : "klientów"} w kartotece`}
         actions={
-          <Button render={<Link href="/klienci/nowy" />} className="gap-2">
+          <ButtonLink href="/klienci/nowy" className="gap-2">
             <Plus className="size-4" aria-hidden="true" />
             Dodaj klienta
-          </Button>
+          </ButtonLink>
         }
       />
 

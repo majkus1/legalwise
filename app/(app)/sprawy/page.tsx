@@ -14,6 +14,7 @@ import {
 import { EmptyState, PageHeader } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -65,10 +66,10 @@ export default async function CasesPage({ searchParams }: PageProps<"/sprawy">) 
         title="Sprawy"
         description={`${rows.length} ${rows.length === 1 ? "sprawa" : "spraw"}${showClosed ? "" : " w toku"}`}
         actions={
-          <Button render={<Link href="/sprawy/nowa" />} className="gap-2">
+          <ButtonLink href="/sprawy/nowa" className="gap-2">
             <Plus className="size-4" aria-hidden="true" />
             Załóż sprawę
-          </Button>
+          </ButtonLink>
         }
       />
 
@@ -89,14 +90,9 @@ export default async function CasesPage({ searchParams }: PageProps<"/sprawy">) 
         <Button type="submit" variant="outline">
           Szukaj
         </Button>
-        <Button
-          render={
-            <Link href={showClosed ? "/sprawy" : "/sprawy?zakonczone=1"} />
-          }
-          variant="ghost"
-        >
+        <ButtonLink href={showClosed ? "/sprawy" : "/sprawy?zakonczone=1"} variant="ghost">
           {showClosed ? "Ukryj zakończone" : "Pokaż zakończone"}
-        </Button>
+        </ButtonLink>
       </form>
 
       {rows.length === 0 ? (
@@ -119,11 +115,11 @@ export default async function CasesPage({ searchParams }: PageProps<"/sprawy">) 
                 <TableHead>Numer</TableHead>
                 <TableHead>Nazwa</TableHead>
                 <TableHead>Klient</TableHead>
-                <TableHead>Typ</TableHead>
+                <TableHead className="hidden 2xl:table-cell">Typ</TableHead>
                 <TableHead>Sygnatura</TableHead>
                 <TableHead>Prowadzący</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Otwarta</TableHead>
+                <TableHead className="whitespace-nowrap">Status</TableHead>
+                <TableHead className="hidden 2xl:table-cell">Otwarta</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -137,13 +133,17 @@ export default async function CasesPage({ searchParams }: PageProps<"/sprawy">) 
                       {item.case_number}
                     </Link>
                   </TableCell>
-                  <TableCell className="max-w-72">
-                    <span className="block truncate">{item.title}</span>
+                  <TableCell className="max-w-64">
+                    <span className="block truncate" title={item.title}>
+                      {item.title}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {item.clients?.name ?? "—"}
+                  <TableCell className="max-w-52 text-muted-foreground">
+                    <span className="block truncate" title={item.clients?.name ?? undefined}>
+                      {item.clients?.name ?? "—"}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="hidden text-muted-foreground 2xl:table-cell">
                     {CASE_TYPE_LABELS[item.case_type as CaseType]}
                   </TableCell>
                   <TableCell className="tabular whitespace-nowrap text-muted-foreground">
@@ -157,7 +157,7 @@ export default async function CasesPage({ searchParams }: PageProps<"/sprawy">) 
                       {CASE_STATUS_LABELS[item.status as CaseStatus]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="tabular whitespace-nowrap text-muted-foreground">
+                  <TableCell className="tabular hidden whitespace-nowrap text-muted-foreground 2xl:table-cell">
                     {formatDate(item.opened_at)}
                   </TableCell>
                 </TableRow>

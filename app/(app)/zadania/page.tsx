@@ -14,7 +14,7 @@ import {
 import { setTaskStatusAction } from "@/lib/actions/tasks";
 import { EmptyState, PageHeader, StatTile } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TaskDialog } from "./task-dialog";
 
@@ -127,26 +127,12 @@ export default async function TasksPage({ searchParams }: PageProps<"/zadania">)
         description={scope === "moje" ? "Przypisane do Ciebie" : "Cała kancelaria"}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              render={
-                <Link href={scope === "moje" ? "/zadania?zakres=wszystkie" : "/zadania"} />
-              }
-              variant="outline"
-              size="sm"
-            >
+            <ButtonLink href={scope === "moje" ? "/zadania?zakres=wszystkie" : "/zadania"} variant="outline" size="sm">
               {scope === "moje" ? "Cała kancelaria" : "Tylko moje"}
-            </Button>
-            <Button
-              render={
-                <Link
-                  href={`/zadania?${scope === "wszystkie" ? "zakres=wszystkie&" : ""}${showDone ? "" : "zrobione=1"}`}
-                />
-              }
-              variant="ghost"
-              size="sm"
-            >
+            </ButtonLink>
+            <ButtonLink href={`/zadania?${scope === "wszystkie" ? "zakres=wszystkie&" : ""}${showDone ? "" : "zrobione=1"}`} variant="ghost" size="sm">
               {showDone ? "Ukryj zrobione" : "Pokaż zrobione"}
-            </Button>
+            </ButtonLink>
             <TaskDialog cases={cases} members={members} today={today} />
           </div>
         }

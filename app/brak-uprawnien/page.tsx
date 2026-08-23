@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { ShieldAlert } from "lucide-react";
 import { requireOrgContext } from "@/lib/auth";
 import { ORG_ROLE_LABELS } from "@/lib/domain";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Brak uprawnień" };
@@ -25,9 +25,9 @@ export default async function NoAccessPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button render={<Link href="/" />} className="w-full">
+          <ButtonLink href="/" className="w-full">
             Wróć do pulpitu
-          </Button>
+          </ButtonLink>
         </CardContent>
       </Card>
     </div>

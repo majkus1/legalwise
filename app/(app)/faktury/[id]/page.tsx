@@ -14,7 +14,7 @@ import {
 } from "@/lib/domain";
 import { DetailRow, PageHeader } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ButtonAnchor } from "@/components/button-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -75,41 +75,23 @@ export default async function InvoiceDetailPage({ params }: PageProps<"/faktury/
       )}
 
       <div className="mb-6 flex flex-wrap gap-2">
-        <Button
-          render={<a href={`/faktury/${bundle.id}/pdf`} target="_blank" rel="noreferrer" />}
-          variant="outline"
-          className="gap-2"
-        >
+        <ButtonAnchor href={`/faktury/${bundle.id}/pdf`} target="_blank" rel="noreferrer" variant="outline" className="gap-2">
           <FileText className="size-4" aria-hidden="true" />
           PDF faktury
-        </Button>
-        <Button
-          render={<a href={`/faktury/${bundle.id}/zestawienie`} target="_blank" rel="noreferrer" />}
-          variant="outline"
-          className="gap-2"
-        >
+        </ButtonAnchor>
+        <ButtonAnchor href={`/faktury/${bundle.id}/zestawienie`} target="_blank" rel="noreferrer" variant="outline" className="gap-2">
           <Download className="size-4" aria-hidden="true" />
           Zestawienie godzin
-        </Button>
+        </ButtonAnchor>
         {!isDraft && (
           <>
-            <Button
-              render={
-                <a href={`/faktury/${bundle.id}/xml?podglad=1`} target="_blank" rel="noreferrer" />
-              }
-              variant="outline"
-              className="gap-2"
-            >
+            <ButtonAnchor href={`/faktury/${bundle.id}/xml?podglad=1`} target="_blank" rel="noreferrer" variant="outline" className="gap-2">
               <FileCode2 className="size-4" aria-hidden="true" />
               Podgląd XML FA(3)
-            </Button>
-            <Button
-              render={<a href={`/faktury/${bundle.id}/xml`} />}
-              variant="ghost"
-              className="gap-2"
-            >
+            </ButtonAnchor>
+            <ButtonAnchor href={`/faktury/${bundle.id}/xml`} variant="ghost" className="gap-2">
               Pobierz XML
-            </Button>
+            </ButtonAnchor>
           </>
         )}
       </div>

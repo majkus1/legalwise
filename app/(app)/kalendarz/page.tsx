@@ -10,6 +10,7 @@ import { EVENT_KIND_LABELS, EVENT_SOURCE_LABELS, type EventKind, type EventSourc
 import { EmptyState, PageHeader } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Card, CardContent } from "@/components/ui/card";
 import { EventDialog } from "./event-dialog";
 import { cn } from "@/lib/utils";
@@ -92,28 +93,18 @@ export default async function CalendarPage({ searchParams }: PageProps<"/kalenda
         description={`${rows.length} ${rows.length === 1 ? "termin" : "terminów"} w tym miesiącu`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              render={<Link href={`/kalendarz?miesiac=${shiftMonth(anchor, -1)}`} />}
-              variant="outline"
-              size="icon"
-              aria-label="Poprzedni miesiąc"
-            >
+            <ButtonLink href={`/kalendarz?miesiac=${shiftMonth(anchor, -1)}`} variant="outline" size="icon" aria-label="Poprzedni miesiąc">
               <ChevronLeft className="size-4" />
-            </Button>
+            </ButtonLink>
             <span className="min-w-36 text-center text-sm font-medium capitalize">
               {monthLabel}
             </span>
-            <Button
-              render={<Link href={`/kalendarz?miesiac=${shiftMonth(anchor, 1)}`} />}
-              variant="outline"
-              size="icon"
-              aria-label="Następny miesiąc"
-            >
+            <ButtonLink href={`/kalendarz?miesiac=${shiftMonth(anchor, 1)}`} variant="outline" size="icon" aria-label="Następny miesiąc">
               <ChevronRight className="size-4" />
-            </Button>
-            <Button render={<Link href="/kalendarz" />} variant="ghost" size="sm">
+            </ButtonLink>
+            <ButtonLink href="/kalendarz" variant="ghost" size="sm">
               Dziś
-            </Button>
+            </ButtonLink>
             <EventDialog cases={cases} today={today} />
           </div>
         }

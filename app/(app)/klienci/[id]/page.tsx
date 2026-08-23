@@ -21,7 +21,7 @@ import {
 } from "@/lib/domain";
 import { DetailRow, EmptyState, PageHeader } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -80,10 +80,10 @@ export default async function ClientDetailPage({ params }: PageProps<"/klienci/[
         title={client.name}
         description={`${CLIENT_TYPE_LABELS[client.client_type as ClientType]}${client.city ? ` · ${client.city}` : ""}`}
         actions={
-          <Button render={<Link href={`/sprawy/nowa?klient=${client.id}`} />} className="gap-2">
+          <ButtonLink href={`/sprawy/nowa?klient=${client.id}`} className="gap-2">
             <Plus className="size-4" aria-hidden="true" />
             Nowa sprawa
-          </Button>
+          </ButtonLink>
         }
       />
 

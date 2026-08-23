@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Source_Serif_4 } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { PwaProvider } from "@/components/pwa";
+import { ThemeProvider } from "@/components/theme";
 import "./globals.css";
 
 // latin-ext jest wymagany dla polskich znaków diakrytycznych (ą ć ę ł ń ó ś ź ż).
@@ -56,14 +57,20 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
+    // suppressHydrationWarning jest wymagane, bo klasa motywu trafia na <html>
+    // skryptem wykonywanym przed hydratacją — bez tego React zgłaszałby
+    // rozbieżność między znacznikiem z serwera a stanem w przeglądarce.
     <html
       lang="pl"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <Toaster position="top-right" richColors />
-        <PwaProvider />
+        <ThemeProvider>
+          {children}
+          <Toaster position="top-right" richColors />
+          <PwaProvider />
+        </ThemeProvider>
       </body>
     </html>
   );

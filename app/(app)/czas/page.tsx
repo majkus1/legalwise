@@ -16,7 +16,7 @@ import {
 import { BILLING_MODEL_LABELS, type BillingModel } from "@/lib/domain";
 import { EmptyState, PageHeader, StatTile } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Card, CardContent } from "@/components/ui/card";
 import { EntryActions } from "./entry-actions";
 
@@ -105,41 +105,19 @@ export default async function TimesheetPage({ searchParams }: PageProps<"/czas">
         actions={
           <div className="flex items-center gap-2">
             {context.canSeeFinances && (
-              <Button
-                render={
-                  <Link
-                    href={showTeam ? `/czas?tydzien=${monday}` : `/czas?tydzien=${monday}&zespol=1`}
-                  />
-                }
-                variant="outline"
-                size="sm"
-              >
+              <ButtonLink href={showTeam ? `/czas?tydzien=${monday}` : `/czas?tydzien=${monday}&zespol=1`} variant="outline" size="sm">
                 {showTeam ? "Tylko moje" : "Cały zespół"}
-              </Button>
+              </ButtonLink>
             )}
-            <Button
-              render={<Link href={weekQuery(shiftDays(monday, -7))} />}
-              variant="outline"
-              size="icon"
-              aria-label="Poprzedni tydzień"
-            >
+            <ButtonLink href={weekQuery(shiftDays(monday, -7))} variant="outline" size="icon" aria-label="Poprzedni tydzień">
               <ChevronLeft className="size-4" />
-            </Button>
-            <Button
-              render={<Link href={weekQuery(todayInWarsaw())} />}
-              variant="outline"
-              size="sm"
-            >
+            </ButtonLink>
+            <ButtonLink href={weekQuery(todayInWarsaw())} variant="outline" size="sm">
               Bieżący tydzień
-            </Button>
-            <Button
-              render={<Link href={weekQuery(shiftDays(monday, 7))} />}
-              variant="outline"
-              size="icon"
-              aria-label="Następny tydzień"
-            >
+            </ButtonLink>
+            <ButtonLink href={weekQuery(shiftDays(monday, 7))} variant="outline" size="icon" aria-label="Następny tydzień">
               <ChevronRight className="size-4" />
-            </Button>
+            </ButtonLink>
           </div>
         }
       />

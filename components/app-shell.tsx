@@ -19,6 +19,7 @@ import {
   Bell,
 } from "lucide-react";
 import { BrandMark, BrandWordmark } from "@/components/brand";
+import { ThemeToggle } from "@/components/theme";
 import { SubmitButton } from "@/components/form-parts";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -221,7 +222,12 @@ export function AppShell({
   return (
     <div className="flex min-h-svh">
       {/* Panel boczny na dużych ekranach */}
-      <aside className="hidden w-64 shrink-0 flex-col bg-sidebar lg:flex">
+      <aside
+        // sticky + pełna wysokość ekranu: menu i dane użytkownika zostają
+        // widoczne, gdy treść jest dłuższa niż okno. Bez tego stopka panelu
+        // znikała poza ekranem na listach spraw czy faktur.
+        className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col overflow-y-auto bg-sidebar lg:flex"
+      >
         {sidebarContent()}
       </aside>
 
@@ -245,7 +251,8 @@ export function AppShell({
             <BrandWordmark className="text-foreground" />
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
+            <ThemeToggle />
             <Link
               href="/powiadomienia"
               aria-label={
