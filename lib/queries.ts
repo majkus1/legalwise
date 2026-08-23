@@ -1,6 +1,60 @@
 import { createServerSupabase } from "@/lib/supabase/server";
 import { resolveBillingModel } from "@/lib/billing";
-import type { BillingModel } from "@/lib/domain";
+import type { BillingModel, OrgRole } from "@/lib/domain";
+
+/** Osoba z zespołu — do list wyboru prowadzącego, wykonawcy zadania itp. */
+export interface MemberOption {
+  userId: string;
+  displayName: string;
+  email: string;
+  role: OrgRole;
+}
+
+/**
+ * Aktywni członkowie kancelarii.
+ *
+ * Korzysta z funkcji organization_member_directory, która łączy członkostwo
+ * z bezpiecznym katalogiem e-maili — nigdy nie sięgamy do auth.users.
+ */
+export async function listMembers(organizationId: string): Promise<MemberOption[]> {
+  const supabase = await createServerSupabase();
+  const { data } = await supabase.rpc("organization_member_directory", {
+    p_org: organizationId,
+  });
+
+  return (data ?? [])
+    .filter((row) => row.active)
+    .map((row) => ({
+      userId: row.user_id,
+      displayName: row.display_name ?? row.email,
+      email: row.email,
+      role: row.role as OrgRole,
+    }));
+}
+
+/** Prawnicy — osoby, którym można powierzyć prowadzenie sprawy. */
+export async function listLawyers(organizationId: string): Promise<MemberOption[]> {
+  const members = await listMembers(organizationId);
+  return members.filter((member) => member.role !== "staff");
+}
+
+/** Klienci do listy wyboru przy zakładaniu sprawy. */
+export async function listClientOptions(): Promise<
+  { id: string; name: string; billingModel: BillingModel }[]
+> {
+  const supabase = await createServerSupabase();
+  const { data } = await supabase
+    .from("clients")
+    .select("id, name, default_billing_model")
+    .is("archived_at", null)
+    .order("name");
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    billingModel: row.default_billing_model as BillingModel,
+  }));
+}
 
 /** Sprawa w postaci nadającej się do listy wyboru przy rejestracji czasu. */
 export interface CaseOption {

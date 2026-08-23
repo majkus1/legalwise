@@ -206,7 +206,7 @@ export async function seedFixture(): Promise<Fixture> {
       {
         organization_id: orgA,
         name: "Acme Sp. z o.o.",
-        tax_id: "7010012345",
+        tax_id: "7010012356",
         default_billing_model: "godzinowy",
         default_hourly_rate_grosz: 45_000,
       },

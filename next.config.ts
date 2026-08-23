@@ -39,6 +39,11 @@ const csp = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Bez tego Turbopack szuka katalogu głównego wyżej w drzewie i trafia na
+  // package-lock.json w katalogu domowym użytkownika, poza repozytorium.
+  turbopack: {
+    root: import.meta.dirname,
+  },
   async headers() {
     return [
       {

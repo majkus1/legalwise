@@ -42,3 +42,9 @@ next-env.d.ts
 
 # Szablon konfiguracji ma być w repozytorium — same nazwy zmiennych, bez wartości.
 !.env.example
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

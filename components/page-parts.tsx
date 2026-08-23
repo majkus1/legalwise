@@ -9,7 +9,8 @@ export function PageHeader({
   className,
 }: {
   title: string;
-  description?: string;
+  /** Może zawierać odnośniki, np. do klienta przy nagłówku sprawy. */
+  description?: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;
 }) {

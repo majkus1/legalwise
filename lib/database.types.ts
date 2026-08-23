@@ -340,6 +340,32 @@ export type Database = {
           },
         ]
       }
+      case_sequences: {
+        Row: {
+          next_number: number
+          organization_id: string
+          year: number
+        }
+        Insert: {
+          next_number?: number
+          organization_id: string
+          year: number
+        }
+        Update: {
+          next_number?: number
+          organization_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_sequences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
           archived_at: string | null
@@ -1176,6 +1202,7 @@ export type Database = {
         Args: { p_org: string }
         Returns: Database["public"]["Enums"]["org_role"]
       }
+      next_case_number: { Args: { p_org: string }; Returns: string }
       next_invoice_number: {
         Args: { p_org: string; p_year: number }
         Returns: number

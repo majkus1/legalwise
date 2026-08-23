@@ -122,7 +122,7 @@ async function main() {
     .insert({
       name: "Legal-Wise",
       legal_name: "Legal-Wise Śliwiński & Kucharski Adwokaci i Radcowie Prawni sp. p.",
-      tax_id: "5213874109",
+      tax_id: "5213874116",
       address_line1: "ul. Emilii Plater 53",
       postal_code: "00-113",
       city: "Warszawa",
@@ -160,7 +160,7 @@ async function main() {
     {
       name: "Acme Polska Sp. z o.o.",
       client_type: "firma" as const,
-      tax_id: "7010234567",
+      tax_id: "7010234565",
       address_line1: "ul. Domaniewska 44",
       postal_code: "02-672",
       city: "Warszawa",
@@ -173,7 +173,7 @@ async function main() {
     {
       name: "Nordwind Logistics S.A.",
       client_type: "firma" as const,
-      tax_id: "5252445123",
+      tax_id: "5252445129",
       address_line1: "al. Jerozolimskie 180",
       postal_code: "02-486",
       city: "Warszawa",
@@ -186,7 +186,7 @@ async function main() {
     {
       name: "Medica Clinic Sp. z o.o.",
       client_type: "firma" as const,
-      tax_id: "1132876543",
+      tax_id: "1132876540",
       address_line1: "ul. Puławska 145",
       postal_code: "02-715",
       city: "Warszawa",
@@ -212,7 +212,7 @@ async function main() {
     {
       name: "Przedsiębiorstwo Budowlane Granit Sp. z o.o.",
       client_type: "firma" as const,
-      tax_id: "8272198456",
+      tax_id: "8272198457",
       address_line1: "ul. Kolejowa 8",
       postal_code: "05-800",
       city: "Pruszków",
@@ -225,7 +225,7 @@ async function main() {
     {
       name: "Fundacja Otwarte Drzwi",
       client_type: "firma" as const,
-      tax_id: "5262456789",
+      tax_id: "5262456784",
       address_line1: "ul. Targowa 82",
       postal_code: "03-448",
       city: "Warszawa",
@@ -384,6 +384,20 @@ async function main() {
     .select("id, case_number");
   fail("Sprawy", caseError);
   const caseId = (number: string) => cases!.find((c) => c.case_number === number)!.id;
+
+  // Sprawy demonstracyjne mają numery nadane wprost, żeby dane były
+  // powtarzalne. Licznik w bazie trzeba ustawić ręcznie — inaczej pierwsza
+  // sprawa założona z aplikacji dostałaby numer 2026/001, który już istnieje,
+  // i naruszyła ograniczenie unikalności.
+  const seededYear = Number(caseRows[0].case_number.split("/")[0]);
+  const highest = Math.max(...caseRows.map((row) => Number(row.case_number.split("/")[1])));
+  const { error: sequenceError } = await admin
+    .from("case_sequences")
+    .upsert(
+      { organization_id: orgId, year: seededYear, next_number: highest + 1 },
+      { onConflict: "organization_id,year" },
+    );
+  fail("Licznik numerów spraw", sequenceError);
 
   console.log("Strony postępowania…");
   await admin.from("case_parties").insert([

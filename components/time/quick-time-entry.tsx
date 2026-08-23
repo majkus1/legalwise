@@ -133,7 +133,7 @@ export function QuickTimeEntry({
               value={billingType}
               onValueChange={(value) => setBillingType(value as BillingModel)}
             >
-              <SelectTrigger id="billingType" className="w-full">
+              <SelectTrigger id="billingType" aria-label="Model rozliczenia" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
