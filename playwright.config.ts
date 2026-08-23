@@ -25,7 +25,9 @@ export default defineConfig({
   // Testy dzielą jedną bazę danych, więc muszą iść po kolei.
   fullyParallel: false,
   workers: 1,
-  timeout: 60_000,
+  // W trybie deweloperskim pierwsze wejście na trasę płaci za jej kompilację,
+  // co potrafi zająć ponad minutę. To nie jest wada aplikacji.
+  timeout: 120_000,
   expect: { timeout: 15_000 },
   reporter: [["list"]],
   use: {
