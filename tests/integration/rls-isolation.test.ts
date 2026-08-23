@@ -111,7 +111,9 @@ describe("Izolacja danych", () => {
     });
 
     it("nie widzi ani jednego rekordu obcej kancelarii", async () => {
-      const checks: Array<[(typeof ALL_TABLES)[number], string]> = [
+      // Zawężone do tabel mających kolumnę `id` — unia wszystkich tabel
+      // dawałaby część wspólną kolumn, a nie ich sumę.
+      const checks: Array<["clients" | "cases", string]> = [
         ["clients", fixture.clientA],
         ["cases", fixture.caseA1],
       ];

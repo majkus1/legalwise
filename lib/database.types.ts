@@ -1039,6 +1039,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      any_organization_exists: { Args: never; Returns: boolean }
       approve_invoice: {
         Args: { p_invoice: string }
         Returns: {
@@ -1195,6 +1196,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["billing_model"]
       }
       resolve_hourly_rate: {
+        Args: { p_case: string; p_user: string }
+        Returns: number
+      }
+      resolve_hourly_rate_internal: {
         Args: { p_case: string; p_user: string }
         Returns: number
       }
