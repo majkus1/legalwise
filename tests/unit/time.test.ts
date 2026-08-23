@@ -8,6 +8,7 @@ import {
   parseDurationToMinutes,
   startOfWeek,
   todayInWarsaw,
+  warsawLocalToUtc,
   weekDays,
 } from "@/lib/time";
 
@@ -168,5 +169,44 @@ describe("monthRange", () => {
 
   it("obsługuje miesiące trzydziestodniowe", () => {
     expect(monthRange("2026-04-10")).toEqual({ from: "2026-04-01", to: "2026-04-30" });
+  });
+});
+
+describe("warsawLocalToUtc", () => {
+  it("przelicza czas letni (UTC+2)", () => {
+    // 27 sierpnia 2026, rozprawa o 10:00 czasu warszawskiego = 08:00 UTC.
+    expect(warsawLocalToUtc("2026-08-27", "10:00").toISOString()).toBe("2026-08-27T08:00:00.000Z");
+  });
+
+  it("przelicza czas zimowy (UTC+1)", () => {
+    // 15 stycznia 2026, ta sama godzina lokalna = 09:00 UTC.
+    expect(warsawLocalToUtc("2026-01-15", "10:00").toISOString()).toBe("2026-01-15T09:00:00.000Z");
+  });
+
+  it("nie przesuwa terminu przy zmianie czasu na letni", () => {
+    // 29.03.2026 to dzień zmiany czasu. Rozprawa o 10:00 nadal ma być o 10:00
+    // lokalnie — zaszyta na sztywno stała przesunęłaby ją o godzinę.
+    const beforeChange = warsawLocalToUtc("2026-03-28", "10:00");
+    const afterChange = warsawLocalToUtc("2026-03-30", "10:00");
+    expect(beforeChange.toISOString()).toBe("2026-03-28T09:00:00.000Z");
+    expect(afterChange.toISOString()).toBe("2026-03-30T08:00:00.000Z");
+  });
+
+  it("nie przesuwa terminu przy zmianie czasu na zimowy", () => {
+    expect(warsawLocalToUtc("2026-10-24", "10:00").toISOString()).toBe("2026-10-24T08:00:00.000Z");
+    expect(warsawLocalToUtc("2026-10-26", "10:00").toISOString()).toBe("2026-10-26T09:00:00.000Z");
+  });
+
+  it("zachowuje godzinę po ponownym sformatowaniu do strefy warszawskiej", () => {
+    for (const date of ["2026-01-15", "2026-06-15", "2026-03-29", "2026-10-25"]) {
+      const utc = warsawLocalToUtc(date, "09:30");
+      const backToWarsaw = new Intl.DateTimeFormat("pl-PL", {
+        timeZone: "Europe/Warsaw",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }).format(utc);
+      expect(backToWarsaw, `data ${date}`).toBe("09:30");
+    }
   });
 });

@@ -106,11 +106,16 @@
   --input: oklch(0.92 0.008 274.04);
   --ring: oklch(0.6831 0.1064 74.46);
 
-  --chart-1: oklch(0.2453 0.0518 274.04);
-  --chart-2: oklch(0.6831 0.1064 74.46);
-  --chart-3: oklch(0.45 0.06 274.04);
-  --chart-4: oklch(0.62 0.08 220);
-  --chart-5: oklch(0.72 0.06 120);
+  /* Paleta wykresów zwalidowana skryptem validate_palette.js: pasmo jasności,
+     próg chromy, rozróżnialność przy zaburzeniach widzenia barw i kontrast
+     względem tła. Odcienie pozostają odcieniami marki (274 i 74,5), ale są
+     rozjaśnione — kolory z logo są na znaczniki za ciemne i czytają się
+     jako szarość. */
+  --chart-1: #4c59b2;
+  --chart-2: #aa7417;
+  --chart-3: oklch(0.58 0.12 200);
+  --chart-4: oklch(0.6 0.13 150);
+  --chart-5: oklch(0.55 0.14 330);
 
   --radius: 0.5rem;
 
@@ -162,11 +167,13 @@
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.6831 0.1064 74.46);
 
-  --chart-1: oklch(0.6831 0.1064 74.46);
-  --chart-2: oklch(0.7 0.09 250);
-  --chart-3: oklch(0.78 0.08 74.46);
-  --chart-4: oklch(0.68 0.1 200);
-  --chart-5: oklch(0.75 0.09 140);
+  /* Osobno dobrane i zwalidowane dla ciemnego tła — nie jest to odwrócenie
+     wartości z trybu jasnego. */
+  --chart-1: #6e7ad9;
+  --chart-2: #b17d21;
+  --chart-3: oklch(0.65 0.12 200);
+  --chart-4: oklch(0.66 0.13 150);
+  --chart-5: oklch(0.62 0.14 330);
 
   --sidebar: oklch(0.145 0.02 274.04);
   --sidebar-foreground: oklch(0.93 0.008 274.04);

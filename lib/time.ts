@@ -167,6 +167,40 @@ export function weekDays(isoDate: string): string[] {
   });
 }
 
+/**
+ * Zamienia datę i godzinę podaną w czasie warszawskim na moment UTC.
+ *
+ * Nie zakładamy stałego przesunięcia: latem wynosi ono dwie godziny, zimą
+ * jedną. Rozprawa wpisana na 9:00 ma się odbyć o 9:00 niezależnie od pory roku,
+ * a zaszyta na sztywno stała przesunęłaby połowę terminów w roku o godzinę.
+ */
+export function warsawLocalToUtc(date: string, time: string): Date {
+  const naive = new Date(`${date}T${time}:00Z`);
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: WARSAW_TIME_ZONE,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  const parts = Object.fromEntries(
+    formatter.formatToParts(naive).map((part) => [part.type, part.value]),
+  );
+  const asWarsaw = new Date(
+    `${parts.year}-${parts.month}-${parts.day}T${
+      parts.hour === "24" ? "00" : parts.hour
+    }:${parts.minute}:${parts.second}Z`,
+  );
+
+  const offset = asWarsaw.getTime() - naive.getTime();
+  return new Date(naive.getTime() - offset);
+}
+
 /** Pierwszy i ostatni dzień miesiąca, w którym leży podana data. */
 export function monthRange(isoDate: string): { from: string; to: string } {
   const [year, month] = isoDate.split("-").map(Number);
