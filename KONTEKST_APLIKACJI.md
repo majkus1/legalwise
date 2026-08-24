@@ -196,6 +196,35 @@ Paleta wykresów (`--chart-1`, `--chart-2`) jest **osobna** i zwalidowana skrypt
 `validate_palette.js` dla obu trybów — kolory z logo są na znaczniki za ciemne
 i czytają się jako szarość.
 
+### Logo — nigdy nie odrysowywać
+
+Znak firmowy kancelarii jest ich własnością. Wszystkie warianty powstają
+**wyłącznie** ze `public/logo-legal-wise.png` skryptem `npm run generate:brand`,
+przez kadrowanie i przebarwienie tuszu:
+
+| Plik | Zastosowanie |
+|---|---|
+| `logo-legal-wise.png` | oryginał, jasne tło |
+| `logo-legal-wise-rewers.png` | ciemne tło (granat → `rgb(230,232,237)`, złoto bez zmian) |
+| `logo-legal-wise-znak.png` | sam znak, jasne tło |
+| `logo-legal-wise-znak-rewers.png` | sam znak, ciemne tło i panel boczny |
+| `icons/*` | ikony PWA — prawdziwy znak na granacie |
+
+> **Panel boczny jest granatowy w OBU motywach**, więc zawsze potrzebuje wersji
+> rewersowej. Oryginał ma granatowy tusz i na tym tle po prostu znika.
+
+Dwa błędy, które już popełniono i które pilnują teraz testy:
+
+1. **Znak narysowany ręcznie w SVG.** Wyglądał podobnie, ale nie był ich znakiem.
+   Trafił do panelu bocznego i do ikon PWA.
+2. **Rozjaśnianie przez `negate()`.** Odwraca wszystkie kanały naraz, więc złoto
+   `#C08F48` wychodziło jako niebieski `#3F70B7`. Do przebarwienia służy
+   `recolorInk()`, które klasyfikuje piksel po odległości od dwóch barw
+   źródłowych i rusza wyłącznie granat.
+
+Strzegą tego `tests/unit/brand-assets.test.ts` (barwy w plikach) oraz
+`tests/e2e/logo.spec.ts` (właściwy wariant widoczny w danym motywie).
+
 ---
 
 ## 9. Testy

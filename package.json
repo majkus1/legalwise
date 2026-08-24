@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run generate:icons && next build",
+    "build": "npm run generate:brand && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -20,7 +20,7 @@
     "db:refresh": "npm run db:reset && npm run db:seed",
     "test:all": "npm run typecheck && npm test && npm run test:rls && npm run db:seed:fresh && npm run test:e2e",
     "db:seed:fresh": "npx supabase db reset && tsx scripts/seed.ts",
-    "generate:icons": "node scripts/generate-pwa-icons.mjs"
+    "generate:brand": "node scripts/generate-brand-assets.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

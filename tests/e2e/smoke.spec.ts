@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { DEMO, login } from "./helpers";
+import { clickWhenReady, DEMO, login } from "./helpers";
 
 test.describe("Podstawowa ścieżka użytkownika", () => {
   test("właściciel loguje się i widzi pulpit z danymi", async ({ page }) => {
@@ -31,7 +31,7 @@ test.describe("Podstawowa ścieżka użytkownika", () => {
     await page.getByRole("link", { name: "Acme Polska Sp. z o.o." }).click();
 
     await expect(page.getByRole("heading", { name: "Acme Polska Sp. z o.o." })).toBeVisible();
-    await page.getByRole("tab", { name: /Sprawy/ }).click();
+    await clickWhenReady(page.getByRole("tab", { name: /Sprawy/ }));
     await expect(page.getByRole("link", { name: "2026/001" })).toBeVisible();
   });
 

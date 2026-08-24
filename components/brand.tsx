@@ -2,50 +2,96 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Logo kancelarii w wersji obrazkowej.
+ * Logo kancelarii. Wyłącznie z pliku dostarczonego przez klienta.
  *
- * Plik z logo ma granatowy napis, więc nadaje się wyłącznie na jasne tło.
- * Na granatowym panelu bocznym używamy wersji tekstowej poniżej.
+ * Warianty wytwarza `npm run generate:brand` przez kadrowanie i przebarwienie
+ * tuszu w oryginale — nic nie jest tu rysowane od nowa. Znak firmowy jest
+ * własnością kancelarii i jego odrysowanie daje kształt, który nie jest ich
+ * znakiem, choćby był łudząco podobny.
+ */
+
+const PELNE = { width: 1168, height: 292 };
+const ZNAK = { width: 243, height: 252 };
+
+/**
+ * Pełne logo dopasowane do motywu.
+ *
+ * Oryginał ma granatowy tusz, więc na ciemnym tle znika. Podmieniamy go
+ * wariantem rewersowym tą samą klasą `dark:`, która przełącza resztę motywu —
+ * dzięki temu właściwa wersja jest widoczna już przy pierwszym malowaniu
+ * i nie mruga po wczytaniu strony.
  */
 export function BrandLogo({ className }: { className?: string }) {
+  const alt = "Legal-Wise — Śliwiński & Kucharski, adwokaci i radcowie prawni";
+  const wspolne = cn("h-auto w-full max-w-[280px]", className);
+
+  // Opis niosą OBA warianty. Element ukryty przez `display: none` nie trafia
+  // do drzewa dostępności, więc w danej chwili czytnik ekranu widzi dokładnie
+  // jeden obrazek — nie ma ani dublowania, ani logo bez nazwy w jednym motywie.
   return (
-    <Image
-      src="/logo-legal-wise.png"
-      alt="Legal-Wise — Śliwiński & Kucharski, adwokaci i radcowie prawni"
-      width={1164}
-      height={289}
-      priority
-      className={cn("h-auto w-full max-w-[280px]", className)}
-    />
+    <>
+      <Image
+        src="/logo-legal-wise.png"
+        alt={alt}
+        {...PELNE}
+        priority
+        className={cn(wspolne, "dark:hidden")}
+      />
+      <Image
+        src="/logo-legal-wise-rewers.png"
+        alt={alt}
+        {...PELNE}
+        priority
+        className={cn(wspolne, "hidden dark:block")}
+      />
+    </>
   );
 }
 
 /**
- * Znak słowny odtworzony tekstem — dostosowuje się do tła.
+ * Sam znak graficzny na ciemne tło.
  *
- * Złoto jest tu użyte jako wypełnienie liter na ciemnym tle, gdzie ma
- * wystarczający kontrast. Na jasnym tle złoty tekst dawałby 2,89:1
- * i nie spełniałby WCAG AA.
+ * Panel boczny jest granatowy w OBU motywach, więc nie ma tu czego przełączać.
+ * W tak wąskim miejscu pełne logo musiałoby zejść do ok. 54 px wysokości,
+ * a wtedy podpis „Śliwiński & Kucharski…" robi się nieczytelną smugą —
+ * dlatego nazwę kancelarii wypisujemy obok zwykłym tekstem interfejsu,
+ * zamiast udawać nią logo.
  */
-export function BrandWordmark({ className }: { className?: string }) {
+export function BrandMarkReversed({ className }: { className?: string }) {
   return (
-    <span className={cn("font-heading text-lg font-bold tracking-[0.18em]", className)}>
-      LEGAL<span className="text-[var(--brand-gold)]">WISE</span>
-    </span>
+    <Image
+      src="/logo-legal-wise-znak-rewers.png"
+      alt=""
+      aria-hidden="true"
+      {...ZNAK}
+      priority
+      className={cn("h-7 w-auto shrink-0", className)}
+    />
   );
 }
 
-/** Kwadratowy znak graficzny — schodkowa forma z logo. */
+/** Znak graficzny na tle strony — przełączany razem z motywem. */
 export function BrandMark({ className }: { className?: string }) {
+  const wspolne = cn("h-7 w-auto shrink-0", className);
+
   return (
-    <svg
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-      className={cn("size-7 shrink-0", className)}
-      fill="none"
-    >
-      <path d="M3 3h7v20h9v6H3V3Z" fill="currentColor" />
-      <path d="M15 3h14v7h-7v13h-7V3Z" fill="var(--brand-gold)" />
-    </svg>
+    <>
+      <Image
+        src="/logo-legal-wise-znak.png"
+        alt=""
+        aria-hidden="true"
+        {...ZNAK}
+        priority
+        className={cn(wspolne, "dark:hidden")}
+      />
+      <Image
+        src="/logo-legal-wise-znak-rewers.png"
+        alt=""
+        aria-hidden="true"
+        {...ZNAK}
+        priority
+        className={cn(wspolne, "hidden dark:block")}
+      />
+    </>
   );
 }

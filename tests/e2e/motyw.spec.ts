@@ -180,7 +180,7 @@ test.describe("Wskaźnik kliknięcia", () => {
 
     expect(await cursorOf(page, "tab", "Ustawienia")).toBe("pointer");
 
-    await page.getByRole("tab", { name: "Ustawienia" }).click();
+    await clickWhenReady(page.getByRole("tab", { name: "Ustawienia" }));
     const checkbox = await page
       .getByRole("checkbox", { name: "Zadania", exact: true })
       .evaluate((element) => getComputedStyle(element).cursor);

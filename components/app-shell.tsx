@@ -18,7 +18,7 @@ import {
   Users,
   Bell,
 } from "lucide-react";
-import { BrandMark, BrandWordmark } from "@/components/brand";
+import { BrandMark, BrandMarkReversed } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme";
 import { SubmitButton } from "@/components/form-parts";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -201,12 +201,14 @@ export function AppShell({
 
   const sidebarContent = (onNavigate?: () => void) => (
     <>
-      <div className="flex items-center gap-2.5 border-b border-sidebar-border px-5 py-4 text-sidebar-foreground">
-        <BrandMark />
-        <div className="min-w-0">
-          <BrandWordmark />
-          <p className="truncate text-[11px] text-sidebar-foreground/55">{organizationName}</p>
-        </div>
+      {/* Znak kancelarii z ich pliku, obok nazwa organizacji zwykłym tekstem.
+          Napisu „LEGALWISE” nie składamy tu czcionką interfejsu — krój liter
+          w logo jest inny i podrobiony napis rzucał się w oczy. */}
+      <div className="flex items-center gap-3 border-b border-sidebar-border px-5 py-4 text-sidebar-foreground">
+        <BrandMarkReversed />
+        <p className="min-w-0 truncate font-heading text-base font-semibold tracking-wide">
+          {organizationName}
+        </p>
       </div>
       <NavLinks role={role} onNavigate={onNavigate} />
       <SidebarFooter
@@ -247,8 +249,11 @@ export function AppShell({
             </SheetContent>
           </Sheet>
 
-          <div className="lg:hidden">
-            <BrandWordmark className="text-foreground" />
+          <div className="flex min-w-0 items-center gap-2.5 lg:hidden">
+            <BrandMark className="h-6" />
+            <p className="truncate font-heading text-sm font-semibold tracking-wide">
+              {organizationName}
+            </p>
           </div>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-2">

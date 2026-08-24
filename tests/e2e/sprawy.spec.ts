@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { DEMO, login } from "./helpers";
+import { clickWhenReady, DEMO, login } from "./helpers";
 
 test.describe("Kartoteka spraw", () => {
   test("lista pokazuje sprawy z metryką sądową", async ({ page }) => {
@@ -41,7 +41,7 @@ test.describe("Kartoteka spraw", () => {
     await login(page, DEMO.owner);
     await page.goto("/sprawy");
     await page.getByRole("link", { name: "2026/001" }).click();
-    await page.getByRole("tab", { name: /Strony/ }).click();
+    await clickWhenReady(page.getByRole("tab", { name: /Strony/ }));
 
     await expect(page.getByText("Pełnomocnik drugiej strony").first()).toBeVisible();
     await expect(page.getByText(/Lewandowski/)).toBeVisible();
@@ -51,7 +51,7 @@ test.describe("Kartoteka spraw", () => {
     await login(page, DEMO.owner);
     await page.goto("/sprawy");
     await page.getByRole("link", { name: "2026/001" }).click();
-    await page.getByRole("tab", { name: /Notatki/ }).click();
+    await clickWhenReady(page.getByRole("tab", { name: /Notatki/ }));
 
     await expect(page.getByText(/sekretariatem wydziału/)).toBeVisible();
   });

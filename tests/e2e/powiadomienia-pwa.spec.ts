@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { DEMO, login } from "./helpers";
+import { clickWhenReady, DEMO, login } from "./helpers";
 
 test.describe("Powiadomienia", () => {
   test("strona powiadomień pokazuje skrzynkę i ustawienia", async ({ page }) => {
@@ -13,7 +13,7 @@ test.describe("Powiadomienia", () => {
     await expect(main.getByRole("heading", { name: "Powiadomienia" })).toBeVisible();
     await expect(main.getByRole("tab", { name: /Skrzynka/ })).toBeVisible();
 
-    await main.getByRole("tab", { name: "Ustawienia" }).click();
+    await clickWhenReady(main.getByRole("tab", { name: "Ustawienia" }));
     await expect(main.getByRole("heading", { name: "Poranny przegląd" })).toBeVisible();
     await expect(main.getByRole("checkbox", { name: "Braki formalne", exact: true })).toBeVisible();
   });
@@ -23,7 +23,7 @@ test.describe("Powiadomienia", () => {
     await page.goto("/powiadomienia");
 
     const main = page.getByRole("main");
-    await main.getByRole("tab", { name: "Ustawienia" }).click();
+    await clickWhenReady(main.getByRole("tab", { name: "Ustawienia" }));
 
     await expect(main.getByRole("checkbox", { name: "Zadania", exact: true })).toBeVisible();
     // Ta sama reguła co w interfejsie i w politykach RLS.
@@ -34,7 +34,7 @@ test.describe("Powiadomienia", () => {
     await login(page, DEMO.owner);
     await page.goto("/powiadomienia");
     const main = page.getByRole("main");
-    await main.getByRole("tab", { name: "Ustawienia" }).click();
+    await clickWhenReady(main.getByRole("tab", { name: "Ustawienia" }));
 
     await main.getByRole("button", { name: "Zapisz ustawienia" }).click();
     // Sonner renderuje komunikat w kilku warstwach (m.in. dla czytników
