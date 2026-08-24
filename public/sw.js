@@ -8,7 +8,15 @@
  * i stronę zastępczą wyświetlaną przy braku sieci.
  */
 
-const CACHE_VERSION = "legal-wise-v1";
+/*
+ * Numer wersji pamięci podręcznej. PODNIEŚ GO przy każdej zmianie plików
+ * z listy PRECACHE — aktywacja kasuje wtedy stare wpisy.
+ *
+ * v2: nowe ikony wytworzone z prawdziwego znaku kancelarii. Poprzednie
+ * powstały z rysunku, który nie był ich znakiem, i bez podniesienia wersji
+ * zostałyby na ekranie telefonu każdego, kto zdążył zainstalować aplikację.
+ */
+const CACHE_VERSION = "legal-wise-v2";
 const OFFLINE_URL = "/offline";
 
 const PRECACHE = [
@@ -56,13 +64,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Zasoby statyczne: najpierw pamięć podręczna, w tle uzupełniana z sieci.
-  const isStatic =
-    url.pathname.startsWith("/icons/") ||
-    url.pathname.startsWith("/_next/static/") ||
-    url.pathname === "/manifest.webmanifest";
-
-  if (isStatic) {
+  // Pliki spod /_next/static/ mają skrót treści w nazwie, więc dana nazwa
+  // zawsze znaczy tę samą zawartość. Tu pamięć podręczna jest ostateczna
+  // i odpytywanie sieci byłoby czystym marnotrawstwem.
+  if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(
       caches.match(request).then(
         (cached) =>
@@ -74,6 +79,35 @@ self.addEventListener("fetch", (event) => {
             }
             return response;
           }),
+      ),
+    );
+    return;
+  }
+
+  // Ikony i manifest mają stałe nazwy, a ich zawartość potrafi się zmienić —
+  // choćby przy poprawce logo. Samo „najpierw pamięć podręczna" zamroziłoby
+  // je na zawsze, więc oddajemy kopię od razu, ale RÓWNOLEGLE odświeżamy ją
+  // z sieci. Użytkownik dostaje aktualną wersję przy następnym wejściu,
+  // bez czekania i bez ręcznego czyszczenia pamięci przeglądarki.
+  const isRevalidated =
+    url.pathname.startsWith("/icons/") || url.pathname === "/manifest.webmanifest";
+
+  if (isRevalidated) {
+    event.respondWith(
+      caches.open(CACHE_VERSION).then((cache) =>
+        cache.match(request).then((cached) => {
+          const swieze = fetch(request)
+            .then((response) => {
+              if (response.ok) cache.put(request, response.clone());
+              return response;
+            })
+            .catch(() => cached);
+
+          // Bez `waitUntil` przeglądarka może uśpić workera zaraz po oddaniu
+          // kopii z pamięci i odświeżenie nigdy by się nie dokończyło.
+          if (cached) event.waitUntil(swieze.catch(() => undefined));
+          return cached ?? swieze;
+        }),
       ),
     );
   }

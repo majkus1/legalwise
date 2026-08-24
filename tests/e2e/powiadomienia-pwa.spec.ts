@@ -119,3 +119,68 @@ test.describe("PWA", () => {
     }
   });
 });
+
+test.describe("Odświeżanie zasobów przez service workera", () => {
+  test("podmieniona ikona wraca do właściwej wersji sama", async ({ page }) => {
+    await page.goto("/logowanie");
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null, null, {
+      timeout: 20_000,
+    });
+
+    const NAZWA = "legal-wise-v2";
+    const ADRES = "/icons/icon-192.png";
+
+    const rozmiarZSieci = await page.evaluate(async (adres) => {
+      const r = await fetch(adres, { cache: "no-store" });
+      return (await r.arrayBuffer()).byteLength;
+    }, ADRES);
+    expect(rozmiarZSieci).toBeGreaterThan(0);
+
+    // Podkładamy udawaną, „starą" zawartość — tak jak zostałaby po poprzednim
+    // wydaniu z nieaktualnym logo.
+    await page.evaluate(
+      async ([nazwa, adres]) => {
+        const cache = await caches.open(nazwa);
+        await cache.put(adres, new Response(new Uint8Array([1, 2, 3]), { status: 200 }));
+      },
+      [NAZWA, ADRES],
+    );
+
+    // Pierwsze wejście może jeszcze oddać kopię z pamięci — to dozwolone,
+    // byle równolegle poszło odświeżenie.
+    await page.evaluate((adres) => fetch(adres), ADRES);
+    await page.waitForFunction(
+      async ([nazwa, adres]) => {
+        const cache = await caches.open(nazwa);
+        const wpis = await cache.match(adres);
+        if (!wpis) return false;
+        return (await wpis.arrayBuffer()).byteLength > 3;
+      },
+      [NAZWA, ADRES],
+      { timeout: 15_000 },
+    );
+
+    const rozmiarPoOdswiezeniu = await page.evaluate(
+      async ([nazwa, adres]) => {
+        const cache = await caches.open(nazwa);
+        const wpis = await cache.match(adres);
+        return (await wpis!.arrayBuffer()).byteLength;
+      },
+      [NAZWA, ADRES],
+    );
+
+    // Bez odświeżania w tle ikona zostałaby na zawsze tą podłożoną —
+    // dokładnie tak zamroziłoby się logo sprzed poprawki.
+    expect(rozmiarPoOdswiezeniu).toBe(rozmiarZSieci);
+  });
+
+  test("stare wersje pamięci podręcznej są kasowane", async ({ page }) => {
+    await page.goto("/logowanie");
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null, null, {
+      timeout: 20_000,
+    });
+
+    const klucze = await page.evaluate(() => caches.keys());
+    expect(klucze, `zostały nieaktualne pamięci: ${klucze.join(", ")}`).toEqual(["legal-wise-v2"]);
+  });
+});
