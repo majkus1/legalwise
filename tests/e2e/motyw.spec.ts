@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { DEMO, login } from "./helpers";
+import { clickWhenReady, DEMO, login } from "./helpers";
 
 /**
  * Rozkłada dowolny zapis koloru CSS na kanały RGB.
@@ -29,67 +29,62 @@ function relativeLuminance([r, g, b]: [number, number, number]): number {
   return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
 }
 
-async function setTheme(page: Page, label: string): Promise<void> {
-  await page.getByRole("button", { name: "Zmień motyw" }).click();
-  await page.getByRole("menuitem", { name: label }).click();
-}
+const enableDark = (page: Page) =>
+  clickWhenReady(page.getByRole("button", { name: "Włącz motyw ciemny" }));
+const enableLight = (page: Page) =>
+  clickWhenReady(page.getByRole("button", { name: "Włącz motyw jasny" }));
+
+const bodyBackground = (page: Page) =>
+  page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
 test.describe("Motyw jasny i ciemny", () => {
-  test("przełącznik zmienia motyw i wybór przetrwa przeładowanie", async ({ page }) => {
+  test("przełącznik działa w obie strony", async ({ page }) => {
     await login(page, DEMO.owner);
-
     const html = page.locator("html");
-    await setTheme(page, "Ciemny");
+
+    // Domyślnie jasny — bez opcji „jak w systemie".
+    await expect(html).not.toHaveClass(/dark/);
+
+    await enableDark(page);
     await expect(html).toHaveClass(/dark/);
 
-    // Wybór zapisuje się w przeglądarce — po odświeżeniu nie wraca jasny.
+    await enableLight(page);
+    await expect(html).not.toHaveClass(/dark/);
+  });
+
+  test("wybór przetrwa przeładowanie", async ({ page }) => {
+    await login(page, DEMO.owner);
+    await enableDark(page);
+    await expect(page.locator("html")).toHaveClass(/dark/);
+
     await page.reload();
-    await expect(html).toHaveClass(/dark/);
+    await expect(page.locator("html")).toHaveClass(/dark/);
   });
 
   test("w trybie ciemnym tło faktycznie ciemnieje", async ({ page }) => {
     await login(page, DEMO.owner);
 
-    const background = () =>
-      page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-
-    await setTheme(page, "Jasny");
-    const light = await toRgb(page, await background());
-
-    await setTheme(page, "Ciemny");
-    const dark = await toRgb(page, await background());
+    const light = await toRgb(page, await bodyBackground(page));
+    await enableDark(page);
+    const dark = await toRgb(page, await bodyBackground(page));
 
     const brightness = ([r, g, b]: [number, number, number]) => (r + g + b) / 3;
 
-    expect(brightness(dark)).toBeLessThan(60);
     expect(brightness(light)).toBeGreaterThan(200);
-  });
-
-  test("można wrócić do ustawienia systemowego", async ({ page }) => {
-    await login(page, DEMO.owner);
-
-    await setTheme(page, "Ciemny");
-    await expect(page.locator("html")).toHaveClass(/dark/);
-
-    await setTheme(page, "Jak w systemie");
-    // Playwright działa domyślnie w schemacie jasnym, więc klasa znika.
-    await expect(page.locator("html")).not.toHaveClass(/dark/);
+    expect(brightness(dark)).toBeLessThan(60);
   });
 
   test("tekst pozostaje czytelny w trybie ciemnym", async ({ page }) => {
     await login(page, DEMO.owner);
-    await setTheme(page, "Ciemny");
+    await enableDark(page);
 
     const heading = page.getByRole("heading", { name: /Dzień dobry/ });
     await expect(heading).toBeVisible();
 
-    const textColor = await heading.evaluate((element) => getComputedStyle(element).color);
-    const backgroundColor = await page.evaluate(
-      () => getComputedStyle(document.body).backgroundColor,
+    const text = relativeLuminance(
+      await toRgb(page, await heading.evaluate((el) => getComputedStyle(el).color)),
     );
-
-    const text = relativeLuminance(await toRgb(page, textColor));
-    const background = relativeLuminance(await toRgb(page, backgroundColor));
+    const background = relativeLuminance(await toRgb(page, await bodyBackground(page)));
     const [hi, lo] = text > background ? [text, background] : [background, text];
 
     // WCAG AA dla zwykłego tekstu.
@@ -98,21 +93,71 @@ test.describe("Motyw jasny i ciemny", () => {
 
   test("złoty akcent marki pozostaje widoczny na ciemnym tle", async ({ page }) => {
     await login(page, DEMO.owner);
-    await setTheme(page, "Ciemny");
+    await enableDark(page);
     await page.goto("/klienci");
 
-    const buttonColor = await page
-      .getByRole("link", { name: "Dodaj klienta" })
-      .evaluate((element) => getComputedStyle(element).backgroundColor);
-
-    const button = relativeLuminance(await toRgb(page, buttonColor));
-    const background = relativeLuminance(
-      await toRgb(page, await page.evaluate(() => getComputedStyle(document.body).backgroundColor)),
+    const button = relativeLuminance(
+      await toRgb(
+        page,
+        await page
+          .getByRole("link", { name: "Dodaj klienta" })
+          .evaluate((el) => getComputedStyle(el).backgroundColor),
+      ),
     );
+    const background = relativeLuminance(await toRgb(page, await bodyBackground(page)));
     const [hi, lo] = button > background ? [button, background] : [background, button];
 
     // Element interfejsu wobec tła — próg WCAG dla elementów nietekstowych.
     expect((hi + 0.05) / (lo + 0.05)).toBeGreaterThan(3);
+  });
+
+  test("motyw ciemny obowiązuje na wszystkich ekranach aplikacji", async ({ page }) => {
+    await login(page, DEMO.owner);
+    await enableDark(page);
+
+    for (const path of [
+      "/",
+      "/czas",
+      "/klienci",
+      "/sprawy",
+      "/zadania",
+      "/kalendarz",
+      "/rozliczenia",
+      "/faktury",
+      "/raporty",
+      "/ustawienia",
+      "/powiadomienia",
+    ]) {
+      await page.goto(path);
+      await expect(page.locator("html"), `motyw zgubiony na ${path}`).toHaveClass(/dark/);
+
+      const brightness = ((rgb: [number, number, number]) => (rgb[0] + rgb[1] + rgb[2]) / 3)(
+        await toRgb(page, await bodyBackground(page)),
+      );
+      expect(brightness, `jasne tło na ${path}`).toBeLessThan(60);
+
+      // Przełącznik musi być dostępny z każdego ekranu, nie tylko z pulpitu.
+      await expect(
+        page.getByRole("button", { name: "Włącz motyw jasny" }),
+        `brak przełącznika na ${path}`,
+      ).toBeVisible();
+    }
+  });
+
+  test("motyw ciemny obejmuje też ekran logowania", async ({ page }) => {
+    await login(page, DEMO.owner);
+    await enableDark(page);
+
+    await page.getByRole("button", { name: "Wyloguj się" }).click();
+    await expect(page).toHaveURL(/\/logowanie/);
+
+    // Ekran logowania jest poza powłoką aplikacji, ale klasa motywu siedzi
+    // na <html>, więc nie może tam wracać jasne tło.
+    await expect(page.locator("html")).toHaveClass(/dark/);
+    const brightness = ((rgb: [number, number, number]) => (rgb[0] + rgb[1] + rgb[2]) / 3)(
+      await toRgb(page, await bodyBackground(page)),
+    );
+    expect(brightness).toBeLessThan(60);
   });
 });
 
@@ -126,7 +171,7 @@ test.describe("Wskaźnik kliknięcia", () => {
 
     expect(await cursorOf(page, "button", "Szukaj")).toBe("pointer");
     expect(await cursorOf(page, "link", "Dodaj klienta")).toBe("pointer");
-    expect(await cursorOf(page, "button", "Zmień motyw")).toBe("pointer");
+    expect(await cursorOf(page, "button", "Włącz motyw ciemny")).toBe("pointer");
   });
 
   test("zakładki i pola wyboru renderowane jako przyciski też je mają", async ({ page }) => {

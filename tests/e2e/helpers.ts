@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { Client as PgClient } from "pg";
 import { config as loadEnv } from "dotenv";
 
@@ -38,6 +38,29 @@ export async function resetInvoicing(): Promise<void> {
   } finally {
     await client.end();
   }
+}
+
+/**
+ * Klika dopiero wtedy, gdy React podłączył już obsługę zdarzeń pod element.
+ *
+ * Playwright czeka na widoczność i klikalność, ale nic nie wie o hydratacji.
+ * Przy zimnym serwerze deweloperskim (np. tuż po `db:seed:fresh`, gdy trasy
+ * kompilują się na żądanie) przycisk bywa gotowy wizualnie, zanim React przypnie
+ * do niego `onClick` — klik wtedy po prostu przepada i test wygląda na usterkę
+ * aplikacji, choć jest wyścigiem samego testu.
+ *
+ * React oznacza zhydratowane węzły własnością `__reactProps$…`; jej obecność
+ * na elemencie znaczy, że zdarzenia są już podpięte.
+ */
+export async function clickWhenReady(locator: Locator): Promise<void> {
+  await locator.waitFor({ state: "visible" });
+  await expect
+    .poll(
+      () => locator.evaluate((el) => Object.keys(el).some((k) => k.startsWith("__reactProps$"))),
+      { message: "React nie zhydratował elementu przed kliknięciem" },
+    )
+    .toBe(true);
+  await locator.click();
 }
 
 /** Konta z danych demonstracyjnych (`npm run db:seed`). */
