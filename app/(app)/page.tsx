@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { AlertTriangle, CalendarClock, CheckSquare, Clock, Gavel } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckSquare, Gavel } from "lucide-react";
 import { requireOrgContext } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import {
@@ -259,13 +259,6 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {canLogTime && (
-        <p className="mt-8 flex items-center gap-2 text-xs text-muted-foreground">
-          <Clock className="size-3.5" aria-hidden="true" />
-          Wskazówka: klawisz <kbd className="rounded border px-1.5 py-0.5 font-mono">N</kbd> otwiera
-          rejestrację czasu z dowolnego ekranu.
-        </p>
-      )}
     </>
   );
 }

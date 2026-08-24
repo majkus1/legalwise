@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
 import { createTimeEntryAction, type ActionState } from "@/lib/actions/time";
 import { CaseCombobox } from "@/components/case-combobox";
 import { FormError, SubmitButton } from "@/components/form-parts";
@@ -28,17 +27,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { BILLING_MODELS, BILLING_MODEL_LABELS, type BillingModel } from "@/lib/domain";
 import type { CaseOption } from "@/lib/queries";
-
-/** Czy fokus jest w polu, w którym skrót klawiszowy przeszkadzałby. */
-function isTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  return (
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.tagName === "SELECT" ||
-    target.isContentEditable
-  );
-}
 
 export function QuickTimeEntry({
   cases,
@@ -72,27 +60,11 @@ export function QuickTimeEntry({
     },
   });
 
-  // Rejestracja czasu to czynność wykonywana kilkanaście razy dziennie —
-  // musi być osiągalna jednym klawiszem z dowolnego ekranu.
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "n" || event.metaKey || event.ctrlKey || event.altKey) return;
-      if (isTypingTarget(event.target)) return;
-      event.preventDefault();
-      setOpen(true);
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size="sm" className="gap-2" />}>
         <Plus className="size-4" aria-hidden="true" />
         Dodaj czas
-        <kbd className="ml-1 hidden rounded border border-primary-foreground/25 px-1.5 py-0.5 font-mono text-[10px] text-primary-foreground/70 sm:inline">
-          N
-        </kbd>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">

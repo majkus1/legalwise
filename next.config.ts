@@ -44,6 +44,13 @@ const csp = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Wskaźnik narzędzi deweloperskich Next.js domyślnie siada w lewym dolnym
+  // rogu, czyli dokładnie na przycisku „Wyloguj się" w panelu bocznym.
+  // W wersji produkcyjnej go nie ma, ale podczas pokazu klientowi zasłaniałby
+  // element interfejsu. `devIndicators: false` schowałoby go całkiem.
+  devIndicators: {
+    position: "bottom-right",
+  },
   // Bez tego Turbopack szuka katalogu głównego wyżej w drzewie i trafia na
   // package-lock.json w katalogu domowym użytkownika, poza repozytorium.
   turbopack: {

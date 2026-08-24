@@ -176,8 +176,7 @@ export default async function TimesheetPage({ searchParams }: PageProps<"/czas">
 
                   {dayRows.length === 0 ? (
                     <p className="py-2 text-sm text-muted-foreground">
-                      Brak wpisów. Naciśnij <kbd className="rounded border px-1.5 py-0.5 font-mono text-xs">N</kbd>,
-                      aby dodać.
+                      Brak wpisów.
                     </p>
                   ) : (
                     <ul className="divide-y">

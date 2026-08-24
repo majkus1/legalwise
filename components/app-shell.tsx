@@ -79,7 +79,10 @@ function NavLinks({ role, onNavigate }: { role: OrgRole; onNavigate?: () => void
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 space-y-6 px-3 py-4">
+    // `min-h-0` jest tu konieczne: element flex ma domyslnie `min-height: auto`,
+    // wiec nie skurczy sie ponizej wysokosci swojej tresci i zamiast przewijac
+    // sie sam, wypchnalby stopke pod krawedz ekranu.
+    <nav className="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-4">
       {NAV_GROUPS.map((group) => {
         const items = group.items.filter((item) => isItemVisible(item, role));
         if (items.length === 0) return null;
@@ -143,7 +146,7 @@ function SidebarFooter({
   onNavigate?: () => void;
 }) {
   return (
-    <div className="border-t border-sidebar-border px-3 py-3">
+    <div className="shrink-0 border-t border-sidebar-border px-3 py-3">
       {canManage && (
         <Link
           href="/ustawienia"
@@ -204,7 +207,7 @@ export function AppShell({
       {/* Znak kancelarii z ich pliku, obok nazwa organizacji zwykłym tekstem.
           Napisu „LEGALWISE” nie składamy tu czcionką interfejsu — krój liter
           w logo jest inny i podrobiony napis rzucał się w oczy. */}
-      <div className="flex items-center gap-3 border-b border-sidebar-border px-5 py-4 text-sidebar-foreground">
+      <div className="flex shrink-0 items-center gap-3 border-b border-sidebar-border px-5 py-4 text-sidebar-foreground">
         <BrandMarkReversed />
         <p className="min-w-0 truncate font-heading text-base font-semibold tracking-wide">
           {organizationName}
@@ -228,7 +231,7 @@ export function AppShell({
         // sticky + pełna wysokość ekranu: menu i dane użytkownika zostają
         // widoczne, gdy treść jest dłuższa niż okno. Bez tego stopka panelu
         // znikała poza ekranem na listach spraw czy faktur.
-        className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col overflow-y-auto bg-sidebar lg:flex"
+        className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col overflow-hidden bg-sidebar lg:flex"
       >
         {sidebarContent()}
       </aside>
