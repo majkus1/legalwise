@@ -19,7 +19,34 @@ loadEnv({ path: ".env.local", quiet: true });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const DEMO_PASSWORD = "Kancelaria2026!";
+/**
+ * Hasło kont demonstracyjnych — wyłącznie ze zmiennej środowiskowej.
+ *
+ * Wpisane w kodzie trafiało do repozytorium, a stamtąd do skanerów sekretów.
+ * Gorsze było jednak to, czego brakowało obok: bez blokady poniżej ten skrypt
+ * założyłby konta o publicznie znanym haśle na dowolnej bazie, na którą
+ * wskazywał `.env.local` — także produkcyjnej.
+ */
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD;
+if (!DEMO_PASSWORD) {
+  throw new Error(
+    "Brak DEMO_PASSWORD. Ustaw je w .env.local — dane demonstracyjne nie mają stałego hasła.",
+  );
+}
+
+/**
+ * Dane demonstracyjne wolno zasiewać WYŁĄCZNIE na bazie lokalnej.
+ *
+ * Kancelaria prowadzi w tym systemie prawdziwe sprawy. Zasiew wstawia
+ * zmyślonych klientów i konta z ustalonym hasłem — na produkcji byłoby to
+ * jednocześnie zaśmieceniem danych i otwartymi drzwiami.
+ */
+const seedHost = new URL(SUPABASE_URL).hostname;
+if (seedHost !== "127.0.0.1" && seedHost !== "localhost") {
+  throw new Error(
+    `Odmawiam zasiewu na bazie ${seedHost}. Dane demonstracyjne są wyłącznie dla środowiska lokalnego.`,
+  );
+}
 
 const admin = createClient<Database>(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },

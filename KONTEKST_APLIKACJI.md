@@ -32,7 +32,7 @@ npm run db:seed:fresh   # reset + dane demonstracyjne
 npm run dev
 ```
 
-Konta demonstracyjne — hasło `Kancelaria2026!`:
+Konta demonstracyjne — hasło w `DEMO_PASSWORD` w `.env.local`:
 `bartosz@` (owner), `michal@` (partner), `anna@` / `piotr@` (lawyer), `katarzyna@` (staff),
 wszystkie w domenie `legal-wise.test`.
 

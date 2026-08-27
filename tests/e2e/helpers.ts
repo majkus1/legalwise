@@ -63,9 +63,14 @@ export async function clickWhenReady(locator: Locator): Promise<void> {
   await locator.click();
 }
 
-/** Konta z danych demonstracyjnych (`npm run db:seed`). */
+/**
+ * Konta z danych demonstracyjnych (`npm run db:seed`).
+ *
+ * Hasło pochodzi z tej samej zmiennej co zasiew — w repozytorium nie ma
+ * literału, więc nie da się go użyć na żadnej bazie poza własną lokalną.
+ */
 export const DEMO = {
-  password: "Kancelaria2026!",
+  password: process.env.DEMO_PASSWORD ?? "",
   owner: "bartosz@legal-wise.test",
   partner: "michal@legal-wise.test",
   lawyer: "anna@legal-wise.test",
@@ -73,6 +78,10 @@ export const DEMO = {
 } as const;
 
 export async function login(page: Page, email: string): Promise<void> {
+  if (DEMO.password === "") {
+    throw new Error("Brak DEMO_PASSWORD w .env.local — testy nie mają czym się zalogować.");
+  }
+
   await page.goto("/logowanie");
   await page.getByLabel("Adres e-mail").fill(email);
   await page.getByLabel("Hasło", { exact: true }).fill(DEMO.password);
