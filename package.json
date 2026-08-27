@@ -21,7 +21,9 @@
     "test:all": "npm run typecheck && npm test && npm run test:rls && npm run db:seed:fresh && npm run test:e2e",
     "db:seed:fresh": "npx supabase db reset && tsx scripts/seed.ts",
     "generate:brand": "node scripts/generate-brand-assets.mjs",
-    "db:purge-demo": "tsx scripts/purge-demo.ts"
+    "db:purge-demo": "tsx scripts/purge-demo.ts",
+    "demo:seed": "tsx scripts/seed.ts --produkcja",
+    "demo:purge": "tsx scripts/purge-demo.ts --produkcja --tak-usun-dane"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

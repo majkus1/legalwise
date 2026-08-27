@@ -20,7 +20,16 @@ import { createClient } from "@supabase/supabase-js";
 import { config as loadEnv } from "dotenv";
 import type { Database } from "../lib/database.types";
 
-loadEnv({ path: ".env.local", quiet: true });
+/**
+ * Wybór bazy: lokalna czy pokazowa (produkcyjna).
+ *
+ * Z przełącznikiem `--produkcja` czytamy `.env.produkcja` zamiast `.env.local`.
+ * Dzięki temu nie trzeba podmieniać kluczy w konfiguracji deweloperskiej —
+ * a właśnie ta podmiana jest niebezpieczna: łatwo ją zapomnieć cofnąć i wtedy
+ * `npm run dev` uderza w bazę kancelarii.
+ */
+const naProdukcje = process.argv.includes("--produkcja");
+loadEnv({ path: naProdukcje ? ".env.produkcja" : ".env.local", quiet: true });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -43,10 +52,19 @@ const isLocal = host === "127.0.0.1" || host === "localhost";
 
 // Kasowanie na bazie zdalnej wymaga osobnej zgody. To operacja nieodwracalna,
 // a pomylka kosztowalaby kancelarie ich dane.
-if (!isLocal && process.env.ALLOW_REMOTE_PURGE !== "1") {
+/**
+ * Kasowanie na bazie zdalnej wymaga DWÓCH przełączników naraz.
+ *
+ * Sam `--produkcja` wskazuje tylko, którą bazę ruszamy — to za mało, bo tego
+ * samego przełącznika używa zasiew. Usunięcie danych jest nieodwracalne, więc
+ * potrzebuje osobnego, jednoznacznego potwierdzenia.
+ */
+const potwierdzoneKasowanie = process.argv.includes("--tak-usun-dane");
+
+if (!isLocal && !potwierdzoneKasowanie) {
   throw new Error(
-    `Odmawiam sprzątania bazy ${host}. Świadome usunięcie danych pokazowych: ` +
-      "ALLOW_REMOTE_PURGE=1 npm run db:purge-demo",
+    `Odmawiam sprzątania bazy ${host}. To operacja nieodwracalna. ` +
+      "Jeśli na pewno chcesz usunąć dane pokazowe: npm run demo:purge",
   );
 }
 

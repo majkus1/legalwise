@@ -15,7 +15,16 @@ import { createClient } from "@supabase/supabase-js";
 import { config as loadEnv } from "dotenv";
 import type { Database } from "../lib/database.types";
 
-loadEnv({ path: ".env.local", quiet: true });
+/**
+ * Wybór bazy: lokalna czy pokazowa (produkcyjna).
+ *
+ * Z przełącznikiem `--produkcja` czytamy `.env.produkcja` zamiast `.env.local`.
+ * Dzięki temu nie trzeba podmieniać kluczy w konfiguracji deweloperskiej —
+ * a właśnie ta podmiana jest niebezpieczna: łatwo ją zapomnieć cofnąć i wtedy
+ * `npm run dev` uderza w bazę kancelarii.
+ */
+const naProdukcje = process.argv.includes("--produkcja");
+loadEnv({ path: naProdukcje ? ".env.produkcja" : ".env.local", quiet: true });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -56,10 +65,10 @@ const isLocal = seedHost === "127.0.0.1" || seedHost === "localhost";
  * `npm run db:purge-demo`. Mieszanie zmyślonych klientów z aktami rzeczywistymi
  * byłoby w systemie prawniczym gorsze niż brak danych.
  */
-if (!isLocal && process.env.ALLOW_REMOTE_SEED !== "1") {
+if (!isLocal && !naProdukcje && process.env.ALLOW_REMOTE_SEED !== "1") {
   throw new Error(
     `Odmawiam zasiewu na bazie ${seedHost}. Dane demonstracyjne są domyślnie wyłącznie dla ` +
-      "środowiska lokalnego. Świadomy zasiew wersji pokazowej: ALLOW_REMOTE_SEED=1 npm run db:seed",
+      "środowiska lokalnego. Zasiew wersji pokazowej: npm run demo:seed",
   );
 }
 

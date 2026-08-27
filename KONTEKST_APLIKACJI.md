@@ -32,6 +32,20 @@ npm run db:seed:fresh   # reset + dane demonstracyjne
 npm run dev
 ```
 
+### Wersja pokazowa dla kancelarii
+
+| Komenda | Co robi |
+|---|---|
+| `npm run db:seed` | zasiew lokalny; na bazie zdalnej **odmawia** |
+| `npm run demo:seed` | zasiew bazy pokazowej — czyta `.env.produkcja`, nie `.env.local` |
+| `npm run demo:purge` | usuwa kancelarię z całą zawartością i konta pokazowe |
+
+`--produkcja` wskazuje plik z konfiguracją, `--tak-usun-dane` potwierdza kasowanie.
+Świadomie NIE podmieniamy kluczy w `.env.local` — łatwo zapomnieć to cofnąć,
+a wtedy `npm run dev` uderza w bazę kancelarii.
+
+Dane pokazowe usuń, zanim kancelaria zacznie prowadzić prawdziwe sprawy.
+
 Konta demonstracyjne — hasło w `DEMO_PASSWORD` w `.env.local`:
 `bartosz@` (owner), `michal@` (partner), `anna@` / `piotr@` (lawyer), `katarzyna@` (staff),
 wszystkie w domenie `legal-wise.test`.
