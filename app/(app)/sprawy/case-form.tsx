@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { toast } from "sonner";
 import { createCaseAction, updateCaseAction, type ActionState } from "@/lib/actions/cases";
 import { FormError, SubmitButton } from "@/components/form-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -51,7 +51,7 @@ export function CaseForm({
   const [leadLawyerId, setLeadLawyerId] = useState(initial.leadLawyerId);
   const [billingModel, setBillingModel] = useState(initial.billingModel);
 
-  if (state.message) toast.success(state.message);
+  useActionFeedback(state);
 
   const isLitigation = LITIGATION_CASE_TYPES.includes(caseType);
   const inheritedModel =

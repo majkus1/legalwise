@@ -81,7 +81,11 @@ export async function login(page: Page, email: string): Promise<void> {
   // Asercja musi sprawdzać, że NIE jesteśmy już na ekranie logowania.
   // Wzorzec dopasowujący „dowolny adres” przepuszczałby nieudane logowanie
   // i ukrywał prawdziwą przyczynę błędów w kolejnych krokach.
-  await expect(page).not.toHaveURL(/\/logowanie/, { timeout: 20_000 });
+  // Hojny limit: serwer deweloperski kompiluje trasy na żądanie, a gdy obok
+  // chodzą inne projekty, samo zalogowanie potrafi zająć kilkanaście sekund.
+  // Na produkcji to ułamek sekundy — limit chroni przed fałszywym błędem,
+  // nie ukrywa wolnego działania aplikacji.
+  await expect(page).not.toHaveURL(/\/logowanie/, { timeout: 45_000 });
   await expect(page.getByRole("navigation")).toBeVisible();
 }
 

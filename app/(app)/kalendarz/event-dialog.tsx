@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
+
 import { createCalendarEventAction, type ActionState } from "@/lib/actions/tasks";
 import { CaseCombobox } from "@/components/case-combobox";
 import { FormError, SubmitButton } from "@/components/form-parts";

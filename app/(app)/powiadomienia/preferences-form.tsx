@@ -1,12 +1,12 @@
 "use client";
 
 import { useActionState } from "react";
-import { toast } from "sonner";
 import {
   updateNotificationPreferencesAction,
   type ActionState,
 } from "@/lib/actions/notifications";
 import { FormError, SubmitButton } from "@/components/form-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
@@ -58,7 +58,7 @@ export function PreferencesForm({
     {},
   );
 
-  if (state.message) toast.success(state.message);
+  useActionFeedback(state);
 
   return (
     <form action={formAction} className="space-y-6">

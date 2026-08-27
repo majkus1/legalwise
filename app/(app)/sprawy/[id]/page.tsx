@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { CalendarClock, CheckSquare, Clock } from "lucide-react";
 import { requireOrgContext } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { listClientOptions, listLawyers, listMembers } from "@/lib/queries";
+import { listCaseOptions, listClientOptions, listLawyers, listMembers } from "@/lib/queries";
 import { formatGrosz } from "@/lib/money";
 import { formatDate, formatDateTime, formatMinutesAsHours, todayInWarsaw } from "@/lib/time";
 import { resolveBillingModel } from "@/lib/billing";
@@ -23,6 +23,9 @@ import {
   type TaskKind,
   type TaskStatus,
 } from "@/lib/domain";
+// Okno zakladania zadania z modulu zadan — uzywamy go tu ponownie, zamiast
+// pisac drugi taki sam formularz.
+import { TaskDialog } from "@/app/(app)/zadania/task-dialog";
 import { DetailRow, EmptyState, PageHeader, StatTile } from "@/components/page-parts";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,9 +67,10 @@ export default async function CaseDetailPage({ params }: PageProps<"/sprawy/[id]
 
   if (!caseRecord?.clients) notFound();
 
-  const [members, partiesResult, notesResult, documentsResult, entriesResult, tasksResult, eventsResult] =
+  const [members, caseOptions, partiesResult, notesResult, documentsResult, entriesResult, tasksResult, eventsResult] =
     await Promise.all([
       listMembers(context.organizationId),
+      listCaseOptions(),
       supabase.from("case_parties").select("id, role, name, contact").eq("case_id", id).order("role"),
       supabase
         .from("case_notes")
@@ -157,7 +161,7 @@ export default async function CaseDetailPage({ params }: PageProps<"/sprawy/[id]
         {/* Przegląd ---------------------------------------------------- */}
         <TabsContent value="przeglad" className="mt-6 space-y-6">
           {context.role !== "staff" && (
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
               <StatTile label="Zarejestrowany czas" value={formatMinutesAsHours(totalMinutes)} />
               <StatTile
                 label="Do zafakturowania"
@@ -330,14 +334,23 @@ export default async function CaseDetailPage({ params }: PageProps<"/sprawy/[id]
         )}
 
         {/* Zadania ----------------------------------------------------- */}
-        <TabsContent value="zadania" className="mt-6">
+        <TabsContent value="zadania" className="mt-6 space-y-4">
+          {/* Zadanie zakłada się tu od razu przypięte do tej sprawy — wcześniej
+              trzeba było przejść do modułu zadań i wybrać ją ręcznie. */}
+          <div className="flex justify-end">
+            <TaskDialog
+              cases={caseOptions}
+              members={members}
+              today={today}
+              defaultCaseId={caseRecord.id}
+            />
+          </div>
+
           {tasks.length === 0 ? (
             <EmptyState
               icon={CheckSquare}
               title="Brak zadań"
-              description="Dodaj zadanie lub brak formalny w module zadań."
-              actionLabel="Przejdź do zadań"
-              actionHref="/zadania"
+              description="Załóż zadanie albo brak formalny — od razu przypisany do tej sprawy."
             />
           ) : (
             <div className="overflow-x-auto rounded-lg border">

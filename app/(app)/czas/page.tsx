@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { requireOrgContext } from "@/lib/auth";
@@ -103,7 +102,9 @@ export default async function TimesheetPage({ searchParams }: PageProps<"/czas">
         title="Ewidencja czasu"
         description={`${formatDate(monday)} – ${formatDate(sunday)}`}
         actions={
-          <div className="flex items-center gap-2">
+          // Cztery przyciski nawigacji po tygodniach nie mieszczą się w jednym
+          // rzędzie na najwęższych telefonach — muszą móc się złamać.
+          <div className="flex flex-wrap items-center gap-2">
             {context.canSeeFinances && (
               <ButtonLink href={showTeam ? `/czas?tydzien=${monday}` : `/czas?tydzien=${monday}&zespol=1`} variant="outline" size="sm">
                 {showTeam ? "Tylko moje" : "Cały zespół"}
@@ -122,7 +123,7 @@ export default async function TimesheetPage({ searchParams }: PageProps<"/czas">
         }
       />
 
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatTile label="Razem w tygodniu" value={formatMinutesAsHours(totalMinutes)} />
         <StatTile label="Do zafakturowania" value={formatMinutesAsHours(billableMinutes)} />
         <StatTile

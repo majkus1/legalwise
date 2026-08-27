@@ -1,13 +1,13 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { toast } from "sonner";
 import {
   createClientAction,
   updateClientAction,
   type ActionState,
 } from "@/lib/actions/clients";
 import { FormError, SubmitButton } from "@/components/form-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,7 +37,7 @@ export function ClientForm({ initial }: { initial: ClientFormValues }) {
   const [clientType, setClientType] = useState<ClientType>(initial.clientType);
   const [billingModel, setBillingModel] = useState<BillingModel>(initial.defaultBillingModel);
 
-  if (state.message) toast.success(state.message);
+  useActionFeedback(state);
 
   return (
     <form action={formAction} className="space-y-8">

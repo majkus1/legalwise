@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
+
 import { createTaskAction, type ActionState } from "@/lib/actions/tasks";
 import { CaseCombobox } from "@/components/case-combobox";
 import { FormError, SubmitButton } from "@/components/form-parts";
@@ -40,13 +40,21 @@ export function TaskDialog({
   cases,
   members,
   today,
+  defaultCaseId,
 }: {
   cases: CaseOption[];
   members: MemberOption[];
   today: string;
+  /**
+   * Sprawa narzucona z góry — ustawiana, gdy okno otwierane jest z karty
+   * konkretnej sprawy. Pole wyboru ustępuje wtedy miejsca nazwie sprawy:
+   * skoro ktoś jest w środku sprawy, zmiana jej w tym oknie byłaby
+   * zaskoczeniem, a nie udogodnieniem.
+   */
+  defaultCaseId?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [caseId, setCaseId] = useState("");
+  const [caseId, setCaseId] = useState(defaultCaseId ?? "");
   const [assigneeId, setAssigneeId] = useState("");
   const [taskKind, setTaskKind] = useState<TaskKind>("zadanie");
   const [priority, setPriority] = useState<TaskPriority>("normalny");
@@ -55,7 +63,7 @@ export function TaskDialog({
   useActionFeedback(state, {
     onSuccess: () => {
       setOpen(false);
-      setCaseId("");
+      setCaseId(defaultCaseId ?? "");
     },
   });
 
@@ -136,10 +144,24 @@ export function TaskDialog({
 
           <div className="space-y-2">
             <Label htmlFor="caseId">Sprawa</Label>
-            <CaseCombobox cases={cases} value={caseId} onChange={setCaseId} />
-            <p className="text-xs text-muted-foreground">
-              Zadanie może nie dotyczyć konkretnej sprawy — pozostaw puste.
-            </p>
+            {defaultCaseId ? (
+              <>
+                <input type="hidden" name="caseId" value={defaultCaseId} />
+                <p className="rounded-lg border border-input bg-muted/40 px-3 py-2 text-sm">
+                  {(() => {
+                    const sprawa = cases.find((item) => item.id === defaultCaseId);
+                    return sprawa ? `${sprawa.caseNumber} — ${sprawa.title}` : "Bieżąca sprawa";
+                  })()}
+                </p>
+              </>
+            ) : (
+              <>
+                <CaseCombobox cases={cases} value={caseId} onChange={setCaseId} />
+                <p className="text-xs text-muted-foreground">
+                  Zadanie może nie dotyczyć konkretnej sprawy — pozostaw puste.
+                </p>
+              </>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -18,7 +18,7 @@ import {
   Users,
   Bell,
 } from "lucide-react";
-import { BrandMark, BrandMarkReversed } from "@/components/brand";
+import { BrandLogoReversed, BrandMark } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme";
 import { SubmitButton } from "@/components/form-parts";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -180,7 +180,6 @@ function SidebarFooter({
 
 export interface AppShellProps {
   displayName: string;
-  organizationName: string;
   role: OrgRole;
   canManage: boolean;
   logoutAction: () => Promise<void>;
@@ -192,7 +191,6 @@ export interface AppShellProps {
 
 export function AppShell({
   displayName,
-  organizationName,
   role,
   canManage,
   logoutAction,
@@ -207,11 +205,10 @@ export function AppShell({
       {/* Znak kancelarii z ich pliku, obok nazwa organizacji zwykłym tekstem.
           Napisu „LEGALWISE” nie składamy tu czcionką interfejsu — krój liter
           w logo jest inny i podrobiony napis rzucał się w oczy. */}
-      <div className="flex shrink-0 items-center gap-3 border-b border-sidebar-border px-5 py-4 text-sidebar-foreground">
-        <BrandMarkReversed />
-        <p className="min-w-0 truncate font-heading text-base font-semibold tracking-wide">
-          {organizationName}
-        </p>
+      {/* Pełne logo kancelarii, nie znak z dopisaną nazwą. Nazwa organizacji
+          jest już w samym logo, więc powtarzanie jej obok byłoby dublowaniem. */}
+      <div className="flex shrink-0 items-center border-b border-sidebar-border px-5 py-5">
+        <BrandLogoReversed />
       </div>
       <NavLinks role={role} onNavigate={onNavigate} />
       <SidebarFooter
@@ -246,17 +243,24 @@ export function AppShell({
             >
               <Menu className="size-5" />
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 border-0 bg-sidebar p-0">
+            <SheetContent
+              side="left"
+              // Panel jest granatowy, a przycisk zamykania to `ghost` bez
+              // własnego koloru tekstu — dziedziczyłby ciemny z motywu jasnego
+              // i znikał na granacie. Narzucamy tu barwy panelu, razem ze
+              // stanem najechania, bo `ghost` rozjaśnia się w drugą stronę.
+              className="w-72 border-0 bg-sidebar p-0 text-sidebar-foreground [&_[data-slot=sheet-close]]:text-sidebar-foreground [&_[data-slot=sheet-close]]:hover:bg-sidebar-accent [&_[data-slot=sheet-close]]:hover:text-sidebar-accent-foreground"
+            >
               <SheetTitle className="sr-only">Menu nawigacyjne</SheetTitle>
               <div className="flex h-full flex-col">{sidebarContent(() => setMobileOpen(false))}</div>
             </SheetContent>
           </Sheet>
 
-          <div className="flex min-w-0 items-center gap-2.5 lg:hidden">
-            <BrandMark className="h-6" />
-            <p className="truncate font-heading text-sm font-semibold tracking-wide">
-              {organizationName}
-            </p>
+          {/* Sam znak kancelarii. Pelne logo zeszloby tu do ok. 25 px wysokosci,
+              a nazwy nie dopisujemy czcionka interfejsu — pelne logo czeka
+              w menu, ktore otwiera przycisk obok. */}
+          <div className="flex shrink-0 items-center lg:hidden">
+            <BrandMark className="h-7" />
           </div>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-2">

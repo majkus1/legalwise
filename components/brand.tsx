@@ -49,14 +49,25 @@ export function BrandLogo({ className }: { className?: string }) {
 }
 
 /**
- * Sam znak graficzny na ciemne tło.
+ * Pełne logo w wersji rewersowej — na granatowy panel boczny.
  *
- * Panel boczny jest granatowy w OBU motywach, więc nie ma tu czego przełączać.
- * W tak wąskim miejscu pełne logo musiałoby zejść do ok. 54 px wysokości,
- * a wtedy podpis „Śliwiński & Kucharski…" robi się nieczytelną smugą —
- * dlatego nazwę kancelarii wypisujemy obok zwykłym tekstem interfejsu,
- * zamiast udawać nią logo.
+ * Panel jest granatowy w OBU motywach, więc nie ma tu czego przełączać:
+ * zawsze idzie wariant z jasnym tuszem, w którym napis „LEGALWISE" i podpis
+ * kancelarii są czytelne na ciemnym tle.
  */
+export function BrandLogoReversed({ className }: { className?: string }) {
+  return (
+    <Image
+      src="/logo-legal-wise-rewers.png"
+      alt="Legal-Wise — Śliwiński & Kucharski, adwokaci i radcowie prawni"
+      {...PELNE}
+      priority
+      className={cn("h-auto w-full", className)}
+    />
+  );
+}
+
+/** Sam znak graficzny na ciemne tło — tam, gdzie na napis nie ma miejsca. */
 export function BrandMarkReversed({ className }: { className?: string }) {
   return (
     <Image

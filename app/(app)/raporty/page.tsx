@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { BarChart3 } from "lucide-react";
 import { requireFinanceContext } from "@/lib/auth";
@@ -6,9 +5,20 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { listMembers } from "@/lib/queries";
 import { buildProfitability, type BillableEntry } from "@/lib/billing";
 import { formatGrosz } from "@/lib/money";
-import { formatDate, formatMinutesAsHours, monthRange, todayInWarsaw } from "@/lib/time";
+import {
+  formatDate,
+  formatMinutesAsHours,
+  monthRange,
+  todayInWarsaw,
+} from "@/lib/time";
 import type { BillingModel } from "@/lib/domain";
-import { EmptyState, PageHeader, StatTile } from "@/components/page-parts";
+import {
+  EmptyState,
+  PageHeader,
+  RecordCard,
+  RecordCardList,
+  StatTile,
+} from "@/components/page-parts";
 import { ButtonLink } from "@/components/button-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -27,12 +37,15 @@ const PERCENT = new Intl.NumberFormat("pl-PL", {
   maximumFractionDigits: 0,
 });
 
-export default async function ReportsPage({ searchParams }: PageProps<"/raporty">) {
+export default async function ReportsPage({
+  searchParams,
+}: PageProps<"/raporty">) {
   const context = await requireFinanceContext();
   const params = await searchParams;
 
   const anchor =
-    typeof params.miesiac === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.miesiac)
+    typeof params.miesiac === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(params.miesiac)
       ? params.miesiac
       : todayInWarsaw();
   const { from, to } = monthRange(anchor);
@@ -44,13 +57,17 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
   const [{ data: entries }, members] = await Promise.all([
     supabase
       .from("time_entries")
-      .select("id, case_id, user_id, work_date, minutes, description, billing_type, rate_snapshot_grosz, billable, invoice_id")
+      .select(
+        "id, case_id, user_id, work_date, minutes, description, billing_type, rate_snapshot_grosz, billable, invoice_id",
+      )
       .gte("work_date", periodFrom)
       .lte("work_date", periodTo),
     listMembers(context.organizationId),
   ]);
 
-  const lawyerNames = Object.fromEntries(members.map((m) => [m.userId, m.displayName]));
+  const lawyerNames = Object.fromEntries(
+    members.map((m) => [m.userId, m.displayName]),
+  );
   const rows = buildProfitability({
     entries: (entries ?? []).map(
       (row): BillableEntry & { invoiceId: string | null } => ({
@@ -86,19 +103,35 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
         description={`Godziny przepracowane wobec zafakturowanych · ${periodLabel}`}
         actions={
           <div className="flex flex-wrap gap-2">
-            <ButtonLink href={wholeYear ? `/raporty?miesiac=${anchor}` : `/raporty?miesiac=${anchor}&zakres=rok`} variant="outline" size="sm">
+            <ButtonLink
+              href={
+                wholeYear
+                  ? `/raporty?miesiac=${anchor}`
+                  : `/raporty?miesiac=${anchor}&zakres=rok`
+              }
+              variant="outline"
+              size="sm"
+            >
               {wholeYear ? "Bieżący miesiąc" : "Cały rok"}
             </ButtonLink>
           </div>
         }
       />
 
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Godziny przepracowane" value={formatMinutesAsHours(totalWorked)} />
-        <StatTile label="Godziny zafakturowane" value={formatMinutesAsHours(totalBilled)} />
+      <section className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <StatTile
+          label="Godziny przepracowane"
+          value={formatMinutesAsHours(totalWorked)}
+        />
+        <StatTile
+          label="Godziny zafakturowane"
+          value={formatMinutesAsHours(totalBilled)}
+        />
         <StatTile
           label="Realizacja"
-          value={totalWorked > 0 ? PERCENT.format(totalBilled / totalWorked) : "—"}
+          value={
+            totalWorked > 0 ? PERCENT.format(totalBilled / totalWorked) : "—"
+          }
           hint="Udział godzin ujętych na fakturach"
         />
         <StatTile
@@ -118,7 +151,9 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
         <div className="space-y-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Godziny przepracowane a zafakturowane</CardTitle>
+              <CardTitle className="text-base">
+                Godziny przepracowane a zafakturowane
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {/* Dwie serie, więc legenda jest obowiązkowa — identyczności nie
@@ -147,7 +182,9 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
                 {rows.map((row) => (
                   <li key={row.userId}>
                     <div className="mb-1.5 flex items-baseline justify-between gap-4">
-                      <span className="text-sm font-medium">{row.lawyerName}</span>
+                      <span className="text-sm font-medium">
+                        {row.lawyerName}
+                      </span>
                       <span className="tabular text-xs text-muted-foreground">
                         realizacja {PERCENT.format(row.realizationRate)}
                       </span>
@@ -187,26 +224,95 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Zestawienie szczegółowe</CardTitle>
+              <CardTitle className="text-base">
+                Zestawienie szczegółowe
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto rounded-lg border">
+              {/* Wąskie ekrany: kafelek na prawnika. Siedem kolumn liczbowych
+                  wymagałoby 450 px przewijania w bok. */}
+              <RecordCardList>
+                {rows.map((row) => (
+                  <RecordCard
+                    key={row.userId}
+                    title={row.lawyerName}
+                    subtitle={`Realizacja ${PERCENT.format(row.realizationRate)}`}
+                    fields={[
+                      {
+                        label: "Przepracowane",
+                        value: formatMinutesAsHours(row.workedMinutes),
+                      },
+                      {
+                        label: "Do rozliczenia",
+                        value: formatMinutesAsHours(row.billableMinutes),
+                      },
+                      {
+                        label: "Zafakturowane",
+                        value: formatMinutesAsHours(row.billedMinutes),
+                      },
+                      {
+                        label: "Nieodpłatnie",
+                        value: formatMinutesAsHours(row.proBonoMinutes),
+                      },
+                      {
+                        label: "Wartość netto",
+                        value: formatGrosz(row.billedNetGrosz),
+                      },
+                    ]}
+                  />
+                ))}
+                <RecordCard
+                  title="Razem"
+                  subtitle={
+                    totalWorked > 0
+                      ? `Realizacja ${PERCENT.format(totalBilled / totalWorked)}`
+                      : undefined
+                  }
+                  fields={[
+                    {
+                      label: "Przepracowane",
+                      value: formatMinutesAsHours(totalWorked),
+                    },
+                    {
+                      label: "Zafakturowane",
+                      value: formatMinutesAsHours(totalBilled),
+                    },
+                    {
+                      label: "Nieodpłatnie",
+                      value: formatMinutesAsHours(totalProBono),
+                    },
+                    { label: "Wartość netto", value: formatGrosz(totalValue) },
+                  ]}
+                />
+              </RecordCardList>
+
+              <div className="hidden overflow-x-auto rounded-lg border md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Prawnik</TableHead>
-                      <TableHead className="text-right">Przepracowane</TableHead>
-                      <TableHead className="text-right">Do rozliczenia</TableHead>
-                      <TableHead className="text-right">Zafakturowane</TableHead>
+                      <TableHead className="text-right">
+                        Przepracowane
+                      </TableHead>
+                      <TableHead className="text-right">
+                        Do rozliczenia
+                      </TableHead>
+                      <TableHead className="text-right">
+                        Zafakturowane
+                      </TableHead>
                       <TableHead className="text-right">Nieodpłatnie</TableHead>
                       <TableHead className="text-right">Realizacja</TableHead>
-                      <TableHead className="text-right">Wartość netto</TableHead>
+                      <TableHead className="text-right">
+                        Wartość netto
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rows.map((row) => (
                       <TableRow key={row.userId}>
-                        <TableCell className="font-medium">{row.lawyerName}</TableCell>
+                        <TableCell className="font-medium">
+                          {row.lawyerName}
+                        </TableCell>
                         <TableCell className="tabular text-right">
                           {formatMinutesAsHours(row.workedMinutes)}
                         </TableCell>
@@ -240,7 +346,9 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
                         {formatMinutesAsHours(totalProBono)}
                       </TableCell>
                       <TableCell className="tabular text-right font-semibold">
-                        {totalWorked > 0 ? PERCENT.format(totalBilled / totalWorked) : "—"}
+                        {totalWorked > 0
+                          ? PERCENT.format(totalBilled / totalWorked)
+                          : "—"}
                       </TableCell>
                       <TableCell className="tabular text-right font-semibold">
                         {formatGrosz(totalValue)}
@@ -251,9 +359,10 @@ export default async function ReportsPage({ searchParams }: PageProps<"/raporty"
               </div>
 
               <p className="mt-3 text-xs text-muted-foreground">
-                {"„Zafakturowane”"} oznacza czas powiązany z fakturą — dopiero to odróżnia pracę
-                wykonaną od pracy rozliczonej. Wartość netto obejmuje wyłącznie rozliczenia
-                godzinowe; kwoty ryczałtowe są na fakturach, nie przy pojedynczych wpisach.
+                {"„Zafakturowane”"} oznacza czas powiązany z fakturą — dopiero
+                to odróżnia pracę wykonaną od pracy rozliczonej. Wartość netto
+                obejmuje wyłącznie rozliczenia godzinowe; kwoty ryczałtowe są na
+                fakturach, nie przy pojedynczych wpisach.
               </p>
             </CardContent>
           </Card>

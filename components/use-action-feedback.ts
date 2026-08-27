@@ -25,8 +25,11 @@ export function useActionFeedback(
   state: FeedbackState,
   handlers: { onSuccess?: () => void; onError?: () => void } = {},
 ): void {
-  const handledMessage = useRef<string | undefined>(undefined);
-  const handledError = useRef<string | undefined>(undefined);
+  // Pilnujemy OBIEKTU stanu, a nie treści komunikatu. `useActionState` zwraca
+  // przy każdym wywołaniu nowy obiekt, więc dwa zapisy tego samego formularza
+  // dają dwa różne wyniki o identycznej treści — porównywanie tekstu zjadałoby
+  // drugie potwierdzenie i wyglądało, jakby zapis nie doszedł.
+  const handledState = useRef<FeedbackState | null>(null);
   const latestHandlers = useRef(handlers);
 
   useEffect(() => {
@@ -36,16 +39,17 @@ export function useActionFeedback(
   });
 
   useEffect(() => {
-    if (state.message && state.message !== handledMessage.current) {
-      handledMessage.current = state.message;
+    // Ten sam obiekt trafia tu ponownie przy podwójnym uruchomieniu efektów
+    // w trybie ścisłym — obsługujemy go dokładnie raz.
+    if (state === handledState.current) return;
+    handledState.current = state;
+
+    if (state.message) {
       toast.success(state.message);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reakcja na odpowiedź serwera; useActionState nie ma wywołania zwrotnego
       latestHandlers.current.onSuccess?.();
     }
 
-    if (state.error && state.error !== handledError.current) {
-      handledError.current = state.error;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- j.w.
+    if (state.error) {
       latestHandlers.current.onError?.();
     }
   }, [state]);

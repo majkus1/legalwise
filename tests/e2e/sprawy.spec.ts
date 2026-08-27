@@ -9,7 +9,9 @@ test.describe("Kartoteka spraw", () => {
     await expect(page.getByRole("heading", { name: "Sprawy" })).toBeVisible();
     await expect(page.getByRole("link", { name: "2026/001" })).toBeVisible();
     // Sygnatura w prawidłowym formacie — element, po którym prawnik rozpoznaje sprawę.
-    await expect(page.getByText("XVI GC 1120/25")).toBeVisible();
+    // Celujemy w komórkę tabeli, bo ten sam tekst jest też w kafelku dla
+    // wąskich ekranów — ukrytym tutaj, ale wciąż obecnym w drzewie strony.
+    await expect(page.getByRole("cell", { name: "XVI GC 1120/25" })).toBeVisible();
   });
 
   test("wyszukiwanie działa po sygnaturze", async ({ page }) => {

@@ -63,18 +63,28 @@ test.describe("Logo kancelarii", () => {
     ).toBe(true);
   });
 
-  test("panel boczny używa prawdziwego znaku, a nie rysunku", async ({ page }) => {
+  test("panel boczny pokazuje pełne logo, a nie rysunek ani napis z czcionki", async ({ page }) => {
     await login(page, DEMO.owner);
 
-    const znaki = (await widoczneObrazki(page)).filter((a) => a.includes("znak"));
-    expect(znaki, "w panelu bocznym nie ma znaku z pliku klienta").not.toHaveLength(0);
+    const wPanelu = await page.evaluate(() => {
+      const aside = document.querySelector("aside");
+      return [...(aside?.querySelectorAll("img") ?? [])].map((img) => {
+        const u = new URL(img.currentSrc || img.src, location.href);
+        return u.searchParams.get("url") ?? u.pathname;
+      });
+    });
 
-    // Panel jest granatowy w obu motywach, więc znak zawsze jest rewersowy.
-    expect(znaki.every((a) => a.includes("rewers"))).toBe(true);
+    expect(wPanelu, "w panelu bocznym nie ma logo z pliku klienta").not.toHaveLength(0);
 
-    // Nazwa kancelarii ma być zwykłym tekstem obok znaku — nie składamy
-    // z niej podrobionego napisu udającego logo.
-    await expect(page.getByRole("navigation")).toBeVisible();
+    // Pełne logo, czyli z napisem „LEGALWISE" — nie sam znak graficzny.
+    expect(
+      wPanelu.some((a) => a.includes("logo-legal-wise-rewers")),
+      `w panelu jest ${wPanelu.join(", ")} zamiast pełnego logo`,
+    ).toBe(true);
+
+    // Panel jest granatowy w obu motywach, więc logo zawsze jest rewersowe —
+    // oryginał z granatowym tuszem zlałby się z tłem.
+    expect(wPanelu.every((a) => a.includes("rewers"))).toBe(true);
   });
 
   test("logo ma nazwę kancelarii dla czytnika ekranu w obu motywach", async ({ page }) => {
@@ -92,12 +102,18 @@ test.describe("Logo kancelarii", () => {
     }
   });
 
-  test("znak w panelu zostaje widoczny po przełączeniu motywu", async ({ page }) => {
+  test("logo w panelu zostaje czytelne po przełączeniu motywu", async ({ page }) => {
     await login(page, DEMO.owner);
     await clickWhenReady(page.getByRole("button", { name: "Włącz motyw ciemny" }));
     await expect(page.locator("html")).toHaveClass(/dark/);
 
-    const znaki = (await widoczneObrazki(page)).filter((a) => a.includes("znak"));
-    expect(znaki.every((a) => a.includes("rewers"))).toBe(true);
+    const wPanelu = await page.evaluate(() => {
+      const aside = document.querySelector("aside");
+      return [...(aside?.querySelectorAll("img") ?? [])].map((img) => {
+        const u = new URL(img.currentSrc || img.src, location.href);
+        return u.searchParams.get("url") ?? u.pathname;
+      });
+    });
+    expect(wPanelu.every((a) => a.includes("rewers"))).toBe(true);
   });
 });

@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import { toast } from "sonner";
 import { updateOrganizationAction, type ActionState } from "@/lib/actions/settings";
 import { FormError, SubmitButton } from "@/components/form-parts";
+import { useActionFeedback } from "@/components/use-action-feedback";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -25,7 +25,7 @@ export interface OrganizationFormValues {
 export function OrganizationForm({ initial }: { initial: OrganizationFormValues }) {
   const [state, formAction] = useActionState<ActionState, FormData>(updateOrganizationAction, {});
 
-  if (state.message) toast.success(state.message);
+  useActionFeedback(state);
 
   return (
     <form action={formAction} className="space-y-8">

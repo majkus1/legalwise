@@ -25,7 +25,6 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <AppShell
       displayName={context.displayName}
-      organizationName={context.organizationName}
       role={context.role}
       canManage={context.canManageOrganization}
       logoutAction={logoutAction}
