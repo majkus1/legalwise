@@ -42,10 +42,30 @@ if (!DEMO_PASSWORD) {
  * jednocześnie zaśmieceniem danych i otwartymi drzwiami.
  */
 const seedHost = new URL(SUPABASE_URL).hostname;
-if (seedHost !== "127.0.0.1" && seedHost !== "localhost") {
+const isLocal = seedHost === "127.0.0.1" || seedHost === "localhost";
+
+/**
+ * Zasiew na bazie zdalnej wymaga świadomej zgody — `ALLOW_REMOTE_SEED=1`.
+ *
+ * To NIE jest obejście blokady, tylko druga, celowo niewygodna droga: na wersję
+ * pokazową dla kancelarii dane demonstracyjne są potrzebne, bo pusty system
+ * niczego nie pokazuje. Zmiennej nie ma w żadnym pliku — trzeba ją podać przy
+ * uruchomieniu, więc przypadkiem się to nie stanie.
+ *
+ * Zanim kancelaria zacznie prowadzić prawdziwe sprawy, dane pokazowe usuwa
+ * `npm run db:purge-demo`. Mieszanie zmyślonych klientów z aktami rzeczywistymi
+ * byłoby w systemie prawniczym gorsze niż brak danych.
+ */
+if (!isLocal && process.env.ALLOW_REMOTE_SEED !== "1") {
   throw new Error(
-    `Odmawiam zasiewu na bazie ${seedHost}. Dane demonstracyjne są wyłącznie dla środowiska lokalnego.`,
+    `Odmawiam zasiewu na bazie ${seedHost}. Dane demonstracyjne są domyślnie wyłącznie dla ` +
+      "środowiska lokalnego. Świadomy zasiew wersji pokazowej: ALLOW_REMOTE_SEED=1 npm run db:seed",
   );
+}
+
+if (!isLocal) {
+  console.warn(`\n⚠  ZASIEW NA BAZIE ZDALNEJ: ${seedHost}`);
+  console.warn("   Dane pokazowe. Usuniesz je: npm run db:purge-demo\n");
 }
 
 const admin = createClient<Database>(SUPABASE_URL, SERVICE_ROLE_KEY, {
