@@ -34,6 +34,26 @@ export function supabaseServiceRoleKey(): string {
   return required("SUPABASE_SERVICE_ROLE_KEY", process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
+/**
+ * Adres aplikacji, używany w linkach wysyłanych mailem.
+ *
+ * Na produkcji jest WYMAGANY. Cicha wartość zastępcza kończyłaby się tym, że
+ * kancelaria dostaje w mailu link do `localhost` — martwy u odbiorcy i bez
+ * śladu błędu w logach. Lepiej, żeby brak konfiguracji ujawnił się od razu.
+ *
+ * Lokalnie zostaje wygodna wartość domyślna, zgodna z portem serwera
+ * deweloperskiego (`next dev -p 3200`).
+ */
 export function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+  const value = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (value) return value;
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Brak NEXT_PUBLIC_SITE_URL. Bez niego linki w mailach (reset hasła, " +
+        "powiadomienia) prowadziłyby do localhost. Ustaw adres aplikacji w zmiennych środowiskowych.",
+    );
+  }
+
+  return "http://localhost:3200";
 }
