@@ -2,26 +2,39 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   BarChart3,
+  Bell,
   Briefcase,
   Calendar,
   CheckSquare,
   Clock,
   FileText,
   LayoutDashboard,
+  Loader2,
   LogOut,
   Menu,
   Receipt,
   Settings,
   Users,
-  Bell,
 } from "lucide-react";
+import { useLinkStatus } from "next/link";
 import { BrandLogoReversed, BrandMark } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme";
 import { SubmitButton } from "@/components/form-parts";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ORG_ROLE_LABELS, type OrgRole } from "@/lib/domain";
 import { cn } from "@/lib/utils";
@@ -44,7 +57,12 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Praca bieżąca",
     items: [
       { href: "/", label: "Pulpit", icon: LayoutDashboard },
-      { href: "/czas", label: "Ewidencja czasu", icon: Clock, roles: ["owner", "partner", "lawyer"] },
+      {
+        href: "/czas",
+        label: "Ewidencja czasu",
+        icon: Clock,
+        roles: ["owner", "partner", "lawyer"],
+      },
       { href: "/zadania", label: "Zadania", icon: CheckSquare },
       { href: "/kalendarz", label: "Kalendarz", icon: Calendar },
     ],
@@ -59,9 +77,24 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Rozliczenia",
     items: [
-      { href: "/rozliczenia", label: "Zamknięcie okresu", icon: Receipt, roles: ["owner", "partner"] },
-      { href: "/faktury", label: "Faktury", icon: FileText, roles: ["owner", "partner"] },
-      { href: "/raporty", label: "Raporty", icon: BarChart3, roles: ["owner", "partner"] },
+      {
+        href: "/rozliczenia",
+        label: "Zamknięcie okresu",
+        icon: Receipt,
+        roles: ["owner", "partner"],
+      },
+      {
+        href: "/faktury",
+        label: "Faktury",
+        icon: FileText,
+        roles: ["owner", "partner"],
+      },
+      {
+        href: "/raporty",
+        label: "Raporty",
+        icon: BarChart3,
+        roles: ["owner", "partner"],
+      },
     ],
   },
 ];
@@ -75,7 +108,75 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavLinks({ role, onNavigate }: { role: OrgRole; onNavigate?: () => void }) {
+/**
+ * Ile odnośników nawigacji czeka w tej chwili na odpowiedź serwera.
+ *
+ * Licznik, a nie flaga: przy szybkim klikaniu dwa przejścia mogą zachodzić na
+ * siebie i pojedyncze `false` wygasiłoby wskaźnik, choć drugie jeszcze trwa.
+ */
+const NawigacjaTrwaContext = createContext<(zmiana: 1 | -1) => void>(() => {});
+
+/**
+ * Kółko przy klikniętej pozycji menu i zgłoszenie zajętości do paska postępu.
+ *
+ * `useLinkStatus` czyta stan NAJBLIŻSZEGO odnośnika, więc ten komponent musi
+ * być dzieckiem `<Link>` — wywołany obok nie wiedziałby, o który odnośnik pytać.
+ *
+ * Po co osobno od `loading.tsx`: szkielet trasy pochodzi ze wstępnego pobrania,
+ * a to według dokumentacji Next działa WYŁĄCZNIE na produkcji. Bez niego, przy
+ * pierwszym kliknięciu w trasę, obszar treści pozostaje przy starym ekranie.
+ * Ten wskaźnik nie zależy od niczego takiego i pojawia się od razu.
+ */
+function NavPending() {
+  const { pending } = useLinkStatus();
+  const zglos = useContext(NawigacjaTrwaContext);
+
+  useEffect(() => {
+    if (!pending) return;
+    zglos(1);
+    return () => zglos(-1);
+  }, [pending, zglos]);
+
+  if (!pending) return null;
+
+  return (
+    <Loader2
+      className="ml-auto size-3.5 shrink-0 animate-spin text-sidebar-foreground/70"
+      aria-hidden="true"
+    />
+  );
+}
+
+/**
+ * Pasek postępu pod górną belką.
+ *
+ * Nie udaje, że zna postęp — przesuwa się w pętli, bo serwer nie raportuje
+ * ilości wykonanej pracy. Chodzi o jednoznaczny sygnał „trwa wczytywanie",
+ * w stałym miejscu, którego nie da się przegapić.
+ */
+function PasekPostepu({ widoczny }: { widoczny: boolean }) {
+  return (
+    <div
+      data-slot="nav-progress"
+      data-widoczny={widoczny}
+      aria-hidden="true"
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden transition-opacity",
+        widoczny ? "opacity-100" : "opacity-0",
+      )}
+    >
+      <div className="h-full w-1/3 animate-[przesuw_1.1s_ease-in-out_infinite] bg-[var(--brand-gold)]" />
+    </div>
+  );
+}
+
+function NavLinks({
+  role,
+  onNavigate,
+}: {
+  role: OrgRole;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
@@ -120,6 +221,7 @@ function NavLinks({ role, onNavigate }: { role: OrgRole; onNavigate?: () => void
                       )}
                       <Icon className="size-4 shrink-0" />
                       {item.label}
+                      <NavPending />
                     </Link>
                   </li>
                 );
@@ -159,8 +261,12 @@ function SidebarFooter({
       )}
 
       <div className="rounded-md bg-sidebar-accent/40 px-3 py-2.5">
-        <p className="truncate text-sm font-medium text-sidebar-accent-foreground">{displayName}</p>
-        <p className="text-xs text-sidebar-foreground/60">{ORG_ROLE_LABELS[role]}</p>
+        <p className="truncate text-sm font-medium text-sidebar-accent-foreground">
+          {displayName}
+        </p>
+        <p className="text-xs text-sidebar-foreground/60">
+          {ORG_ROLE_LABELS[role]}
+        </p>
       </div>
 
       <form action={logoutAction} className="mt-2">
@@ -199,6 +305,13 @@ export function AppShell({
   unreadCount = 0,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [trwaPrzejsc, setTrwaPrzejsc] = useState(0);
+
+  // Referencja stabilna, żeby efekt w NavPending nie zgłaszał się przy każdym
+  // renderze powłoki — inaczej licznik rozjechałby się przy zmianie ekranu.
+  const zglosPrzejscie = useCallback((zmiana: 1 | -1) => {
+    setTrwaPrzejsc((n) => Math.max(0, n + zmiana));
+  }, []);
 
   const sidebarContent = (onNavigate?: () => void) => (
     <>
@@ -222,74 +335,84 @@ export function AppShell({
   );
 
   return (
-    <div className="flex min-h-svh">
-      {/* Panel boczny na dużych ekranach */}
-      <aside
-        // sticky + pełna wysokość ekranu: menu i dane użytkownika zostają
-        // widoczne, gdy treść jest dłuższa niż okno. Bez tego stopka panelu
-        // znikała poza ekranem na listach spraw czy faktur.
-        className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col overflow-hidden bg-sidebar lg:flex"
-      >
-        {sidebarContent()}
-      </aside>
+    <NawigacjaTrwaContext.Provider value={zglosPrzejscie}>
+      <div className="flex min-h-svh">
+        {/* Panel boczny na dużych ekranach */}
+        <aside
+          // sticky + pełna wysokość ekranu: menu i dane użytkownika zostają
+          // widoczne, gdy treść jest dłuższa niż okno. Bez tego stopka panelu
+          // znikała poza ekranem na listach spraw czy faktur.
+          className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col overflow-hidden bg-sidebar lg:flex"
+        >
+          {sidebarContent()}
+        </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-background/95 px-4 py-3 backdrop-blur lg:px-8">
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger
-              render={
-                <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Otwórz menu" />
-              }
-            >
-              <Menu className="size-5" />
-            </SheetTrigger>
-            <SheetContent
-              side="left"
-              // Panel jest granatowy, a przycisk zamykania to `ghost` bez
-              // własnego koloru tekstu — dziedziczyłby ciemny z motywu jasnego
-              // i znikał na granacie. Narzucamy tu barwy panelu, razem ze
-              // stanem najechania, bo `ghost` rozjaśnia się w drugą stronę.
-              className="w-72 border-0 bg-sidebar p-0 text-sidebar-foreground [&_[data-slot=sheet-close]]:text-sidebar-foreground [&_[data-slot=sheet-close]]:hover:bg-sidebar-accent [&_[data-slot=sheet-close]]:hover:text-sidebar-accent-foreground"
-            >
-              <SheetTitle className="sr-only">Menu nawigacyjne</SheetTitle>
-              <div className="flex h-full flex-col">{sidebarContent(() => setMobileOpen(false))}</div>
-            </SheetContent>
-          </Sheet>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-background/95 px-4 py-3 backdrop-blur lg:px-8">
+            <PasekPostepu widoczny={trwaPrzejsc > 0} />
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden"
+                    aria-label="Otwórz menu"
+                  />
+                }
+              >
+                <Menu className="size-5" />
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                // Panel jest granatowy, a przycisk zamykania to `ghost` bez
+                // własnego koloru tekstu — dziedziczyłby ciemny z motywu jasnego
+                // i znikał na granacie. Narzucamy tu barwy panelu, razem ze
+                // stanem najechania, bo `ghost` rozjaśnia się w drugą stronę.
+                className="w-72 border-0 bg-sidebar p-0 text-sidebar-foreground [&_[data-slot=sheet-close]]:text-sidebar-foreground [&_[data-slot=sheet-close]]:hover:bg-sidebar-accent [&_[data-slot=sheet-close]]:hover:text-sidebar-accent-foreground"
+              >
+                <SheetTitle className="sr-only">Menu nawigacyjne</SheetTitle>
+                <div className="flex h-full flex-col">
+                  {sidebarContent(() => setMobileOpen(false))}
+                </div>
+              </SheetContent>
+            </Sheet>
 
-          {/* Sam znak kancelarii. Pelne logo zeszloby tu do ok. 25 px wysokosci,
+            {/* Sam znak kancelarii. Pelne logo zeszloby tu do ok. 25 px wysokosci,
               a nazwy nie dopisujemy czcionka interfejsu — pelne logo czeka
               w menu, ktore otwiera przycisk obok. */}
-          <div className="flex shrink-0 items-center lg:hidden">
-            <BrandMark className="h-7" />
-          </div>
+            <div className="flex shrink-0 items-center lg:hidden">
+              <BrandMark className="h-7" />
+            </div>
 
-          <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <ThemeToggle />
-            <Link
-              href="/powiadomienia"
-              aria-label={
-                unreadCount > 0
-                  ? `Powiadomienia: ${unreadCount} nieprzeczytanych`
-                  : "Powiadomienia"
-              }
-              className="relative inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Bell className="size-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-[var(--brand-gold)] px-1 text-[10px] font-bold text-[var(--brand-navy)]">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </Link>
+            <div className="ml-auto flex items-center gap-1 sm:gap-2">
+              <ThemeToggle />
+              <Link
+                href="/powiadomienia"
+                aria-label={
+                  unreadCount > 0
+                    ? `Powiadomienia: ${unreadCount} nieprzeczytanych`
+                    : "Powiadomienia"
+                }
+                className="relative inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <Bell className="size-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-[var(--brand-gold)] px-1 text-[10px] font-bold text-[var(--brand-navy)]">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
 
-            {/* Rejestracja czasu jest czynnością wykonywaną kilkanaście razy
+              {/* Rejestracja czasu jest czynnością wykonywaną kilkanaście razy
                 dziennie — musi być osiągalna z każdego ekranu. */}
-            {quickAction}
-          </div>
-        </header>
+              {quickAction}
+            </div>
+          </header>
 
-        <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+          <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+        </div>
       </div>
-    </div>
+    </NawigacjaTrwaContext.Provider>
   );
 }

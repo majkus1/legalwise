@@ -253,3 +253,16 @@
     cursor: pointer;
   }
 }
+
+/*
+ * Pasek postępu nawigacji. Przesuwa się w pętli, bo serwer nie raportuje
+ * postępu — sygnalizuje trwanie, nie procent wykonania.
+ */
+@keyframes przesuw {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
